@@ -105,7 +105,7 @@ Expected result: profile/context, acceptance, execution prompt, guard review, ha
 
 ## Want the AI to remind you on its own
 
-Tired of remembering to run the guard yourself? Install the adapter into your AI tool's always-on instructions with `node bin/ai-collab.js adapters install --target <repo>` (after publish: `ai-collab adapters install --target <repo>`). It turns on restrained coaching reminders, so the AI prompts you at the key moments - define done, review a completion claim, hand off, harvest. If you only have one tool, the completion-claim check routes through `single-tool-guard` (a fresh adversarial pass in the same tool) instead of a second AI brand.
+Tired of remembering to run the guard yourself? Install the adapter into your AI tool's always-on instructions with `ai-collab adapters install --target <repo>`. It turns on restrained coaching reminders, so the AI prompts you at the key moments - define done, review a completion claim, hand off, harvest. If you only have one tool, the completion-claim check routes through `single-tool-guard` (a fresh adversarial pass in the same tool) instead of a second AI brand.
 
 ## Where to go next
 

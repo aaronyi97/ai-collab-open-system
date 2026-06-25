@@ -68,7 +68,7 @@ The first time you work with this user after the workspace is installed — on y
 
 #### Step 0 — Installed (show the canonical intro VERBATIM)
 
-Run `ai-collab welcome` (before publish: `node bin/ai-collab.js welcome`) and show its output VERBATIM. Do NOT re-summarize or paraphrase it — the CLI hard-prints the canonical intro (the six layers, the keyword modes, the honest privacy line, the closing question) so it always lands in full instead of being garbled by a re-write. Print it as-is, then STOP and let the user answer the closing question.
+Run `ai-collab welcome` and show its output VERBATIM. Do NOT re-summarize or paraphrase it — the CLI hard-prints the canonical intro (the six layers, the keyword modes, the honest privacy line, the closing question) so it always lands in full instead of being garbled by a re-write. Print it as-is, then STOP and let the user answer the closing question.
 
 #### Step 1 — Scan (only after they say go)
 
@@ -76,7 +76,7 @@ When they say to scan ("scan" / "go" / "just the X project" / etc.): first state
 
 Honesty about the scan — you MUST say this before scanning, it is the whole point: the scan is done by YOU, the cloud AI they already use, so the content passes through your provider's servers like any normal chat. Say plainly: this is NOT "zero data leaves your machine" — any tool claiming "absolutely no leak" is bluffing. But it is no more exposure than normally talking to you. The ai-collab tool itself sends nothing to third parties. They can narrow the scope or decline. Default scope: only the currently active project, nothing wider unless they ask.
 
-Then run `ai-collab bootstrap --yes` (before publish: `node bin/ai-collab.js bootstrap --yes`) for the DETERMINISTIC facts: which "done"s lack evidence (VERIFY), what is in flight (RESUME), profile clues, high-risk role signals, harvestable lessons. Everything you say from here on is built on these scanned facts plus the conversation you are having now — never on a guess.
+Then run `ai-collab bootstrap --yes` for the DETERMINISTIC facts: which "done"s lack evidence (VERIFY), what is in flight (RESUME), profile clues, high-risk role signals, harvestable lessons. Everything you say from here on is built on these scanned facts plus the conversation you are having now — never on a guess.
 
 #### Step 2 — Profile read + collaboration advice + CONFIRM (do this first, one block, then WAIT)
 

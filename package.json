@@ -4,7 +4,7 @@
   "description": "Local-first open-source AI collaboration workspace with profile, context, acceptance, guard, handoff, and harvest structure.",
   "type": "module",
   "bin": {
-    "ai-collab": "./bin/ai-collab.js"
+    "ai-collab": "bin/ai-collab.js"
   },
   "scripts": {
     "test": "node --test",
