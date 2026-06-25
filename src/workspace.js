@@ -1473,7 +1473,7 @@ Everything stays local-first. You paste a redacted description into the AI tools
 
 What you need: one real task that is a bit messy, and one AI tool you can paste into. A second tool of a different model family (a different AI brand) makes Step 3 much stronger, but you can run all three rounds in one tool if that is all you have.
 
-Want the AI to prompt you for these steps on its own - to ping you to review every time it says "done", instead of you remembering to paste Step 3? Install the adapter into your tool's always-on instructions with \`node bin/ai-collab.js adapters install --target <repo>\`; it turns on the coaching reminders, and if you only have one tool it routes the completion-claim check through \`single-tool-guard\` (a fresh adversarial pass in the same tool).
+Want the AI to prompt you for these steps on its own - to ping you to review every time it says "done", instead of you remembering to paste Step 3? Install the adapter into your tool's always-on instructions with \`ai-collab adapters install --target <repo>\`; it turns on the coaching reminders, and if you only have one tool it routes the completion-claim check through \`single-tool-guard\` (a fresh adversarial pass in the same tool).
 
 ## Step 1 (2 min) - Define done before any work
 

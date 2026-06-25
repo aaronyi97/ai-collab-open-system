@@ -257,15 +257,15 @@ function emit(args, text, payload) {
 function printQuickstart() {
   console.log(`AI Collaboration Open System — make AI productive on real work through a profile -> context -> acceptance -> guard -> handoff -> harvest loop (local-first; no network).
 
-Not published to npm yet, so run from a clone with: node bin/ai-collab.js <command>
+Installed from npm — the global ai-collab command is available everywhere. (From a source clone, the same commands run as node bin/ai-collab.js.)
 
 Start with one of these three:
-  node bin/ai-collab.js init --target <dir>   Create your workspace (then run one real task through the loop).
-  node bin/ai-collab.js guide                 Read the guided first run, step by step.
-  node bin/ai-collab.js demo                   Watch the flow on a prepared example (writes to a temp dir).
+  ai-collab init --target <dir>   Create your workspace (then run one real task through the loop).
+  ai-collab guide                 Read the guided first run, step by step.
+  ai-collab demo                   Watch the flow on a prepared example (writes to a temp dir).
 
-New here? Run: node bin/ai-collab.js guide
-Full command list: node bin/ai-collab.js --help
+New here? Run: ai-collab guide
+Full command list: ai-collab --help
 `);
 }
 
@@ -300,11 +300,9 @@ function printLevelsHelp() {
 function guide(args) {
   emit(args, `Start here (recommended first run: your own real task):
 
-The source is on GitHub (CI green); not published to npm yet, so run from a clone with node bin/ai-collab.js.
-After publish, the same commands work as the global ai-collab command.
+Installed from npm — the global ai-collab command is available everywhere. (From a source clone, the same commands run as node bin/ai-collab.js.)
 
-1. Run: node bin/ai-collab.js init --target ./my-ai-workspace
-   (after publish: ai-collab init --target ./my-ai-workspace)
+1. Run: ai-collab init --target ./my-ai-workspace
 2. Open: ./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md
 3. Follow its steps on one real (lightly redacted) task of your own:
    define done -> do only that slice -> independent re-check -> handoff -> harvest.
@@ -335,16 +333,15 @@ Paid help, if offered by a maintainer, is only for calibration and saving time.
 Network: not used.
 `, {
     command: "guide",
-    published: false,
+    published: true,
     steps: [
-      "node bin/ai-collab.js init --target ./my-ai-workspace",
+      "ai-collab init --target ./my-ai-workspace",
       "open ./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md",
       "run the 10-minute loop on your own real (lightly redacted) task",
       "watch an independent re-check reject a thin \"done\" on your own task",
       "install adapter guidance so the same rules drive every session"
     ],
     demoPreview: "open ./my-ai-workspace/.aict/walkthroughs/10-minute.md to watch the flow on a prepared example first",
-    afterPublish: "ai-collab init --target ./my-ai-workspace",
     network: "not used"
   });
 }
@@ -366,7 +363,7 @@ function demo(args) {
       : `could not create a temp directory (${error && error.code ? error.code : error && error.message ? error.message : "unknown error"})`;
     const message = `Demo needs to write a throwaway workspace to a temp directory, but ${reason}.
 Instead, scaffold a real workspace in a writable dir:
-  node bin/ai-collab.js init --target <writable-dir>
+  ai-collab init --target <writable-dir>
 Or read the committed walkthrough directly: .aict/walkthroughs/10-minute.md
 Network: not used.`;
     if (args.json) {
@@ -376,7 +373,7 @@ Network: not used.`;
         reason: "temp-dir-unwritable",
         readOnly: Boolean(readOnly),
         errorCode: error && error.code ? error.code : null,
-        hint: "node bin/ai-collab.js init --target <writable-dir>",
+        hint: "ai-collab init --target <writable-dir>",
         walkthrough: ".aict/walkthroughs/10-minute.md",
         network: "not used"
       }, null, 2));
@@ -389,7 +386,7 @@ Network: not used.`;
   const result = createWorkspace(target, { force: true });
   emit(args, `Demo workspace created.
 
-Note: demo writes a throwaway workspace to a new temp directory to show the layout without touching your project. In a read-only environment this write can fail (EPERM/EACCES); if so, run "node bin/ai-collab.js init --target <writable-dir>" instead.
+Note: demo writes a throwaway workspace to a new temp directory to show the layout without touching your project. In a read-only environment this write can fail (EPERM/EACCES); if so, run "ai-collab init --target <writable-dir>" instead.
 Workspace (temporary): ${result.workspaceRoot}
 Watch the prepared demo (a worked example, not your task): ${path.join(result.workspaceRoot, "walkthroughs", "10-minute.md")}
 It drives the flagship example: ${path.join(result.workspaceRoot, "examples", "ai-coding-long-task", "CASE.md")}
@@ -480,7 +477,7 @@ function init(args) {
     // First-experience tie-in: point a brand-new user at the value report built
     // from their own work (report-only, local). Surfaced in --json too so an
     // integrating tool can chain it.
-    nextValueReport: "node bin/ai-collab.js bootstrap --yes",
+    nextValueReport: "ai-collab bootstrap --yes",
     network: "not used"
   });
 }
@@ -500,7 +497,7 @@ function resolveWorkspace(workspaceArg) {
 
 function check(args) {
   if (!args.workspace) {
-    throw new Error("Missing --workspace. Run: node bin/ai-collab.js check --workspace <dir>");
+    throw new Error("Missing --workspace. Run: ai-collab check --workspace <dir>");
   }
 
   const workspace = resolveWorkspace(args.workspace);
@@ -558,7 +555,7 @@ function formatHookSection(hooks) {
   return [
     "Hooks: project-local Claude Code Stop hook (local-only; no global hook):",
     ...lines,
-    "  Reminds you to capture evidence + run `node bin/ai-collab.js receipt create` when you claim a task is done.",
+    "  Reminds you to capture evidence + run `ai-collab receipt create` when you claim a task is done.",
     "  Uninstall: remove the \"ai-collab-receipt-reminder\" entry from the local settings.json above."
   ].join("\n");
 }
@@ -577,10 +574,10 @@ Detection looks for: .cursor/ or .cursorrules (cursor), .claude/ or CLAUDE.md (c
 function adapters(args) {
   const subcommand = args._[1];
   if (subcommand !== "install") {
-    throw new Error("Unknown adapters command. Run: node bin/ai-collab.js adapters install --target <dir>");
+    throw new Error("Unknown adapters command. Run: ai-collab adapters install --target <dir>");
   }
   if (!args.target) {
-    throw new Error("Missing --target. Run: node bin/ai-collab.js adapters install --target <dir>");
+    throw new Error("Missing --target. Run: ai-collab adapters install --target <dir>");
   }
 
   const result = installAdapters(args.target, {
@@ -840,7 +837,7 @@ function taskCommand(args) {
   const action = args._[1];
   if (action === "create") return taskCreate(args);
   if (action === "update") return taskUpdate(args);
-  throw new Error("Unknown task command. Run: node bin/ai-collab.js task create --title \"...\" | node bin/ai-collab.js task update --task <id> --status <status>");
+  throw new Error("Unknown task command. Run: ai-collab task create --title \"...\" | ai-collab task update --task <id> --status <status>");
 }
 
 function taskCreate(args) {
@@ -909,7 +906,7 @@ Ledger: ${path.join(stateDir, "tasks.jsonl")}
 function evidenceCommand(args) {
   const action = args._[1];
   if (action !== "add") {
-    throw new Error("Unknown evidence command. Run: node bin/ai-collab.js evidence add --task <id> --kind <k> --summary \"...\"");
+    throw new Error("Unknown evidence command. Run: ai-collab evidence add --task <id> --kind <k> --summary \"...\"");
   }
   const taskId = requireOption(args, "task");
   const kind = requireOption(args, "kind");
@@ -1093,7 +1090,7 @@ Ledger: ${path.join(stateDir, "runs.jsonl")}
         }
       }
       if (!target) {
-        throw new Error(`No running run found for task ${taskId}. Start one first: node bin/ai-collab.js run start --task ${taskId}.`);
+        throw new Error(`No running run found for task ${taskId}. Start one first: ai-collab run start --task ${taskId}.`);
       }
       target.finishedAt = now();
       target.exitCode = exitCode;
@@ -1250,14 +1247,14 @@ Ledger: ${path.join(stateDir, "runs.jsonl")}
     return;
   }
 
-  throw new Error("Unknown run command. Run: node bin/ai-collab.js run start --task <id> | node bin/ai-collab.js run finish --task <id> --exit <code> | node bin/ai-collab.js run exec --task <id> --command \"...\"");
+  throw new Error("Unknown run command. Run: ai-collab run start --task <id> | ai-collab run finish --task <id> --exit <code> | ai-collab run exec --task <id> --command \"...\"");
 }
 
 function receiptCommand(args) {
   const action = args._[1];
   if (action === "create") return receiptCreate(args);
   if (action === "accept") return receiptAccept(args);
-  throw new Error("Unknown receipt command. Run: node bin/ai-collab.js receipt create --task <id> --verdict <v> --guard-level <L0-L4> [--evidence <id,id>] [--rerun <id,id>] | node bin/ai-collab.js receipt accept --id <id> --owner");
+  throw new Error("Unknown receipt command. Run: ai-collab receipt create --task <id> --verdict <v> --guard-level <L0-L4> [--evidence <id,id>] [--rerun <id,id>] | ai-collab receipt accept --id <id> --owner");
 }
 
 // Parse a comma-separated id list flag into a clean array (trimmed, no blanks).
@@ -1414,7 +1411,7 @@ function receiptCreate(args) {
   why: ${levelWhy}
   reviewMode: ${record.reviewMode}
   status: ${record.status}
-  evidence: ${evidenceIds.length > 0 ? evidenceIds.join(", ") : "(none)"}${rerunEvidenceIds.length > 0 ? `\n  rerun: ${rerunEvidenceIds.join(", ")}` : ""}${claimDowngradeNote ? `\n  note: ${claimDowngradeNote}` : ""}${honesty ? `\n  note: the cross-family family is ${honesty}; local rerun evidence verifies execution/output only, not model-family identity` : ""}${l4ExecutionNote ? `\n  note: ${l4ExecutionNote}` : ""}${status === "pending" && verdict === "pass_with_risk" ? "\n  (pass_with_risk: pending owner acceptance — run: node bin/ai-collab.js receipt accept --id " + record.id + " --owner)" : ""}
+  evidence: ${evidenceIds.length > 0 ? evidenceIds.join(", ") : "(none)"}${rerunEvidenceIds.length > 0 ? `\n  rerun: ${rerunEvidenceIds.join(", ")}` : ""}${claimDowngradeNote ? `\n  note: ${claimDowngradeNote}` : ""}${honesty ? `\n  note: the cross-family family is ${honesty}; local rerun evidence verifies execution/output only, not model-family identity` : ""}${l4ExecutionNote ? `\n  note: ${l4ExecutionNote}` : ""}${status === "pending" && verdict === "pass_with_risk" ? "\n  (pass_with_risk: pending owner acceptance — run: ai-collab receipt accept --id " + record.id + " --owner)" : ""}
 Ledger: ${path.join(stateDir, "receipts.jsonl")}
 `, { command: "receipt create", ok: true, receipt: record, stateDir });
 }
@@ -1529,7 +1526,7 @@ function learningCommand(args) {
   if (action === "edit") return learningEdit(args);
   if (action === "drop") return learningSetStatus(args, "dropped");
   throw new Error(
-    "Unknown learning command. Run: node bin/ai-collab.js learning add --type <harvest|profile> --content \"...\" [--task <id>] | node bin/ai-collab.js learning confirm --id <id> | node bin/ai-collab.js learning edit --id <id> --content \"...\" | node bin/ai-collab.js learning drop --id <id>"
+    "Unknown learning command. Run: ai-collab learning add --type <harvest|profile> --content \"...\" [--task <id>] | ai-collab learning confirm --id <id> | ai-collab learning edit --id <id> --content \"...\" | ai-collab learning drop --id <id>"
   );
 }
 
@@ -1580,7 +1577,7 @@ function learningAdd(args) {
   type: ${record.type}${record.taskId ? `\n  task: ${record.taskId}` : ""}
   content: ${record.content}
   status: ${record.status}
-Review it to keep it: node bin/ai-collab.js learning confirm --id ${record.id} (keep) | learning edit --id ${record.id} --content "..." (reword) | learning drop --id ${record.id} (discard).
+Review it to keep it: ai-collab learning confirm --id ${record.id} (keep) | learning edit --id ${record.id} --content "..." (reword) | learning drop --id ${record.id} (discard).
 Only confirmed/edited candidates graduate into your long-term profile.
 Ledger: ${path.join(stateDir, "learning-ledger.jsonl")}
 `, { command: "learning add", ok: true, learning: record, stateDir });
@@ -1596,7 +1593,7 @@ function learningSetStatus(args, status) {
   const learning = readLedger(stateDir, "learning");
   const target = learning.find((row) => row.id === id);
   if (!target) {
-    throw new Error(`Learning row ${id} not found. Add one first: node bin/ai-collab.js learning add --type <harvest|profile> --content "...".`);
+    throw new Error(`Learning row ${id} not found. Add one first: ai-collab learning add --type <harvest|profile> --content "...".`);
   }
   target.status = status;
   target.updatedAt = now();
@@ -1611,7 +1608,7 @@ function learningSetStatus(args, status) {
   emit(args, `Learning candidate ${kept ? "confirmed (kept)" : "dropped (discarded)"}.
   id: ${target.id}
   type: ${target.type}
-  status: ${target.status}${kept && target.type === "profile" ? "\n  (this preference will now be echoed back next time via `node bin/ai-collab.js status`)" : ""}
+  status: ${target.status}${kept && target.type === "profile" ? "\n  (this preference will now be echoed back next time via `ai-collab status`)" : ""}
 Ledger: ${path.join(stateDir, "learning-ledger.jsonl")}
 `, { command: `learning ${kept ? "confirm" : "drop"}`, ok: true, learning: target, stateDir });
 }
@@ -1627,7 +1624,7 @@ function learningEdit(args) {
   const learning = readLedger(stateDir, "learning");
   const target = learning.find((row) => row.id === id);
   if (!target) {
-    throw new Error(`Learning row ${id} not found. Add one first: node bin/ai-collab.js learning add --type <harvest|profile> --content "...".`);
+    throw new Error(`Learning row ${id} not found. Add one first: ai-collab learning add --type <harvest|profile> --content "...".`);
   }
   target.content = content;
   target.status = "edited";
@@ -1641,7 +1638,7 @@ function learningEdit(args) {
   id: ${target.id}
   type: ${target.type}
   content: ${target.content}
-  status: ${target.status}${target.type === "profile" ? "\n  (this preference will now be echoed back next time via `node bin/ai-collab.js status`)" : ""}
+  status: ${target.status}${target.type === "profile" ? "\n  (this preference will now be echoed back next time via `ai-collab status`)" : ""}
 Ledger: ${path.join(stateDir, "learning-ledger.jsonl")}
 `, { command: "learning edit", ok: true, learning: target, stateDir });
 }
@@ -1702,7 +1699,7 @@ function capabilityCommand(args) {
   // "capability" and "capability detect" both run the detector; any other
   // subcommand is a usage error.
   if (action !== undefined && action !== "detect") {
-    throw new Error("Unknown capability command. Run: node bin/ai-collab.js capability detect [--project <dir>] [--tools <list>] [--families <list>] [--subagents] [--can-switch-model] [--can-rerun] [--no-new-conversation] [--json]");
+    throw new Error("Unknown capability command. Run: ai-collab capability detect [--project <dir>] [--tools <list>] [--families <list>] [--subagents] [--can-switch-model] [--can-rerun] [--no-new-conversation] [--json]");
   }
 
   // 1) Probe the project for tool-marker files (default: current dir, or --project).
@@ -1789,7 +1786,7 @@ ${recLine}
 
 Ceiling vs achieved — keep them apart:
   - This CEILING (${cap.ceiling}) is the most your TOOLS could ever support.
-  - What a task actually EARNS is its receipt's guard level (node bin/ai-collab.js receipt create),
+  - What a task actually EARNS is its receipt's guard level (ai-collab receipt create),
     computed from the evidence you cite THAT task. Same setup, no real evidence -> a
     lower achieved level. The ceiling is the roof; each task still has to reach it.
 
@@ -2038,7 +2035,7 @@ function handoffCommand(args) {
   const action = args._[1];
   if (action !== "create") {
     throw new Error(
-      "Unknown handoff command. Run: node bin/ai-collab.js handoff create [--task <id>] [--workspace <dir>] [--json]"
+      "Unknown handoff command. Run: ai-collab handoff create [--task <id>] [--workspace <dir>] [--json]"
     );
   }
 
@@ -2523,7 +2520,7 @@ function deriveStatusNextStep({ perTask, learning, handoffDrafts, workspaceArg }
     return {
       code: "run_bootstrap",
       text: tr("status.next.noOwnWork.text"),
-      command: `node bin/ai-collab.js bootstrap --yes${wsSuffix}    # or: node bin/ai-collab.js task create --title "..."${wsSuffix}`
+      command: `ai-collab bootstrap --yes${wsSuffix}    # or: ai-collab task create --title "..."${wsSuffix}`
     };
   }
 
@@ -2536,7 +2533,7 @@ function deriveStatusNextStep({ perTask, learning, handoffDrafts, workspaceArg }
     return {
       code: "add_evidence",
       text: tr("status.next.noEvidence.text", { id: noEvidence.id }),
-      command: `node bin/ai-collab.js run exec --task ${noEvidence.id} --command "..."${wsSuffix}`
+      command: `ai-collab run exec --task ${noEvidence.id} --command "..."${wsSuffix}`
     };
   }
 
@@ -2548,7 +2545,7 @@ function deriveStatusNextStep({ perTask, learning, handoffDrafts, workspaceArg }
     return {
       code: "create_receipt",
       text: tr("status.next.noReceipt.text", { id: noReceipt.id }),
-      command: `node bin/ai-collab.js receipt create --task ${noReceipt.id} --verdict pass_with_risk --review-mode self --evidence <id>${wsSuffix}`
+      command: `ai-collab receipt create --task ${noReceipt.id} --verdict pass_with_risk --review-mode self --evidence <id>${wsSuffix}`
     };
   }
 
@@ -2560,7 +2557,7 @@ function deriveStatusNextStep({ perTask, learning, handoffDrafts, workspaceArg }
     return {
       code: "accept_receipt",
       text: tr("status.next.pending.text", { receiptId: pending.receipt.id, taskId: pending.id }),
-      command: `node bin/ai-collab.js receipt accept --id ${pending.receipt.id} --owner you${wsSuffix}`
+      command: `ai-collab receipt accept --id ${pending.receipt.id} --owner you${wsSuffix}`
     };
   }
 
@@ -2570,7 +2567,7 @@ function deriveStatusNextStep({ perTask, learning, handoffDrafts, workspaceArg }
     return {
       code: "create_handoff",
       text: tr("status.next.missingHandoff.text"),
-      command: `node bin/ai-collab.js handoff create${wsSuffix}`
+      command: `ai-collab handoff create${wsSuffix}`
     };
   }
 
@@ -2585,7 +2582,7 @@ function deriveStatusNextStep({ perTask, learning, handoffDrafts, workspaceArg }
     return {
       code: "confirm_learning",
       text: tr("status.next.keepLesson.text", { id: keepableLearning.id }),
-      command: `node bin/ai-collab.js learning confirm --id ${keepableLearning.id}${wsSuffix}`
+      command: `ai-collab learning confirm --id ${keepableLearning.id}${wsSuffix}`
     };
   }
 
@@ -2886,7 +2883,7 @@ async function main() {
       const suggestion = closestCommand(command);
       console.error(`Unknown command: ${command}`);
       if (suggestion) console.error(`Did you mean '${suggestion}'?`);
-      console.error("Run 'node bin/ai-collab.js --help' for all commands.");
+      console.error("Run 'ai-collab --help' for all commands.");
       process.exitCode = 1;
     }
   } catch (error) {

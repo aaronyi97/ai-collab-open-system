@@ -165,10 +165,10 @@ test("bin CLI supports first-run UX without unsafe fallbacks", () => {
   const missingTarget = runResult(["bin/ai-collab.js", "init"]);
   assert.notEqual(missingTarget.status, 0);
   assert.match(missingTarget.stderr, /Missing --target/i);
-  // P1: the error must point at the REAL runnable entry (node bin/ai-collab.js),
-  // not the unpublished global `ai-collab` command. The `node bin/` prefix is the
+  // P1: now that the package is published to npm, the error points at the global
+  // `ai-collab` command (the standard install path). The `ai-collab ` prefix is the
   // load-bearing part of this assertion.
-  assert.match(missingTarget.stderr, /node bin\/ai-collab\.js init --target <dir>/i);
+  assert.match(missingTarget.stderr, /ai-collab init --target <dir>/i);
 
   // --dry-run writes nothing, so a target-less preview must succeed (not error)
   // and must still write no files; only a real (writing) init demands --target.
@@ -199,8 +199,8 @@ test("bin CLI supports first-run UX without unsafe fallbacks", () => {
   const missingWorkspace = runResult(["bin/ai-collab.js", "check"]);
   assert.notEqual(missingWorkspace.status, 0);
   assert.match(missingWorkspace.stderr, /Missing --workspace/i);
-  // P1: same as init — point at node bin/ai-collab.js, not the unpublished global.
-  assert.match(missingWorkspace.stderr, /node bin\/ai-collab\.js check --workspace <dir>/i);
+  // P1: same as init — point at the global `ai-collab` command (published).
+  assert.match(missingWorkspace.stderr, /ai-collab check --workspace <dir>/i);
 
   runCli(["init", "--target", target, "--force"]);
   const checkOutput = runCli(["check", "--workspace", target]);
@@ -2426,10 +2426,10 @@ test("first-screen: bare command prints a concise quickstart (3 commands, no L0-
   const lineCount = screen.split("\n").filter((line) => line.trim().length > 0).length;
   assert.ok(lineCount <= 16, `the quickstart must be concise (<=16 non-blank lines), got ${lineCount}`);
 
-  // The three starter commands are each present, on the real runnable entry.
-  assert.match(screen, /node bin\/ai-collab\.js init --target/i, "quickstart must show the init command");
-  assert.match(screen, /node bin\/ai-collab\.js guide/i, "quickstart must show the guide command");
-  assert.match(screen, /node bin\/ai-collab\.js demo/i, "quickstart must show the demo command");
+  // The three starter commands are each present, on the global `ai-collab` entry.
+  assert.match(screen, /ai-collab init --target/i, "quickstart must show the init command");
+  assert.match(screen, /ai-collab guide/i, "quickstart must show the guide command");
+  assert.match(screen, /ai-collab demo/i, "quickstart must show the demo command");
   // It points the user at the full reference and the new-user fast path.
   assert.match(screen, /--help/, "quickstart must point at --help for the full list");
   assert.match(screen, /guide/i, "quickstart must nudge a new user toward guide");
@@ -2454,31 +2454,31 @@ test("first-screen: bare command prints a concise quickstart (3 commands, no L0-
   assert.match(helpSub.stdout, /L0|L4/, "the explicit `help` subcommand stays the full reference");
 });
 
-// P1: error/prompt text must point at the CURRENTLY runnable entry
-// (node bin/ai-collab.js ...), never the unpublished global `ai-collab`
-// command. Spot-check several distinct error paths; the `node bin/` prefix is
-// the load-bearing assertion (a bare `ai-collab init` would be a dead command).
-test("first-screen: error guidance uses `node bin/ai-collab.js`, not the unpublished global command", () => {
+// P1: now that the package is published to npm, error/prompt text points at the
+// global `ai-collab` command (the standard install path). Spot-check several
+// distinct error paths; the `ai-collab ` prefix is the load-bearing assertion, and
+// the guidance must NOT regress to the source-only `node bin/ai-collab.js` form.
+test("first-screen: error guidance uses the published global `ai-collab` command", () => {
   const bin = path.join(repoRoot, "bin", "ai-collab.js");
 
   // init with no --target.
   const initErr = runResult([bin, "init"]);
   assert.notEqual(initErr.status, 0);
-  assert.match(initErr.stderr, /node bin\/ai-collab\.js init --target/i);
-  // It must NOT tell the user to run the bare global `ai-collab init` (dead command).
-  assert.doesNotMatch(initErr.stderr, /(^|[^.])\bai-collab init\b/i, "must not point at the unpublished global `ai-collab init`");
+  assert.match(initErr.stderr, /\bai-collab init --target/i);
+  // It must NOT regress to the source-only `node bin/ai-collab.js init` form.
+  assert.doesNotMatch(initErr.stderr, /node bin\/ai-collab\.js init/i, "must not point at the source-only `node bin/ai-collab.js init`");
 
   // A run-layer command with no workspace (the case README emphasizes most).
   const noWs = mkdtempSync(path.join(tmpdir(), "aicos-firstscreen-nows-"));
   const wsErr = runResult([bin, "task", "create", "--title", "x"], { cwd: noWs });
   assert.notEqual(wsErr.status, 0);
-  assert.match(wsErr.stderr, /node bin\/ai-collab\.js init --target/i, "the no-workspace refusal must point at node bin/ai-collab.js init");
-  assert.doesNotMatch(wsErr.stderr, /(^|[^.])\bai-collab init\b/i, "must not point at the unpublished global `ai-collab init`");
+  assert.match(wsErr.stderr, /\bai-collab init --target/i, "the no-workspace refusal must point at `ai-collab init`");
+  assert.doesNotMatch(wsErr.stderr, /node bin\/ai-collab\.js init/i, "must not point at the source-only `node bin/ai-collab.js init`");
 
-  // An unknown subcommand inside a group also uses the real entry.
+  // An unknown subcommand inside a group also uses the global entry.
   const subErr = runResult([bin, "task", "bogus"]);
   assert.notEqual(subErr.status, 0);
-  assert.match(subErr.stderr, /node bin\/ai-collab\.js task create/i, "the unknown-subcommand usage must use node bin/ai-collab.js");
+  assert.match(subErr.stderr, /\bai-collab task create/i, "the unknown-subcommand usage must use `ai-collab task create`");
 });
 
 // P2: an unknown TOP-LEVEL command no longer dumps the 100+ line reference; it
@@ -2492,13 +2492,13 @@ test("first-screen: an unknown command gives a short did-you-mean, not the full 
   assert.notEqual(typo.status, 0, "an unknown command must exit non-zero");
   assert.match(typo.stderr, /Unknown command: inti/, "must name the unknown command");
   assert.match(typo.stderr, /Did you mean 'init'\?/, "must suggest the closest command");
-  assert.match(typo.stderr, /node bin\/ai-collab\.js --help/, "must point at the full command list");
+  assert.match(typo.stderr, /ai-collab --help/, "must point at the full command list");
   // Short, not the reference wall, and crucially NOT the L0-L4 theory.
   const typoLines = typo.stderr.split("\n").filter((line) => line.trim().length > 0).length;
   assert.ok(typoLines <= 3, `the typo response must be 1-3 lines, got ${typoLines}`);
   assert.doesNotMatch(typo.stderr, /L0|L4|guard level/i, "the typo response must not dump the guard-level reference");
   // It also must not print the full Usage block.
-  assert.doesNotMatch(typo.stderr, /Usage \(after publish/i, "the typo response must not print the full usage reference");
+  assert.doesNotMatch(typo.stderr, /^Usage:/im, "the typo response must not print the full usage reference");
 
   // A prefix typo resolves by prefix (stat -> status).
   const prefix = runResult([bin, "stat"]);
@@ -2538,7 +2538,7 @@ test("first-screen: demo fails friendly in a read-only sandbox (no raw mkdtemp s
   });
   assert.notEqual(res.status, 0, "demo in a read-only sandbox must exit non-zero");
   // Friendly, actionable message — points at the real writable path + walkthrough.
-  assert.match(res.stderr, /node bin\/ai-collab\.js init --target/i, "demo fallback must point at init --target <writable-dir>");
+  assert.match(res.stderr, /\bai-collab init --target/i, "demo fallback must point at init --target <writable-dir>");
   assert.match(res.stderr, /walkthrough/i, "demo fallback must point at the committed walkthrough");
   assert.match(res.stderr, /temp directory/i, "demo fallback must explain it could not create a temp directory");
   // NOT a raw thrown errno/stack: no "mkdtemp" errno text, no V8 stack frames.
@@ -2556,7 +2556,7 @@ test("first-screen: demo fails friendly in a read-only sandbox (no raw mkdtemp s
   assert.notEqual(jsonRes.status, 0);
   const payload = JSON.parse(jsonRes.stderr);
   assert.equal(payload.ok, false, "demo --json must report ok:false on a temp-dir failure");
-  assert.match(payload.hint, /node bin\/ai-collab\.js init --target/i, "demo --json must carry the actionable init hint");
+  assert.match(payload.hint, /\bai-collab init --target/i, "demo --json must carry the actionable init hint");
 });
 
 test("task create appends an open task to tasks.jsonl", () => {
@@ -5115,7 +5115,7 @@ test("B5-2: --help opens term-light (init/bootstrap/status) and sinks the L0-L4 
 
   // (a) Term-light header up top: the three starter commands each with a one-liner,
   //     appearing before the dense Usage block.
-  const headerCut = help.indexOf("Usage (");
+  const headerCut = help.indexOf("Usage:");
   assert.ok(headerCut > 0, "--help must still have a Usage section");
   const header = help.slice(0, headerCut);
   assert.match(header, /New here\?/i, "the term-light header must lead the help screen");
@@ -5153,7 +5153,7 @@ test("B5-3: status prints a state-aware Next step (real command) and a plain-lan
   const freshText = runCli(["status", "--workspace", fresh]);
   assert.match(freshText, /Next step:/, "status must print a Next step line");
   assert.match(freshText, /No work of your own yet/i, "a seed-only workspace's Next step says there is no own work yet");
-  assert.match(freshText, /node bin\/ai-collab\.js bootstrap --yes/, "the seed-only Next step suggests the real bootstrap command");
+  assert.match(freshText, /\bai-collab bootstrap --yes/, "the seed-only Next step suggests the real bootstrap command");
   // The shipped seed receipt (L3) line carries a plain-language gloss.
   assert.match(freshText, /\(L3: cross-family pass/i, "a per-task L3 line must carry the plain-language gloss");
 
@@ -5173,7 +5173,7 @@ test("B5-3: status prints a state-aware Next step (real command) and a plain-lan
 
   const text = runCli(["status", "--workspace", ws]);
   assert.match(text, new RegExp(`Next step:.*receipt ${receipt.id}.*pending`, "i"), "the Next step names the pending receipt");
-  assert.match(text, new RegExp(`node bin/ai-collab\\.js receipt accept --id ${receipt.id} --owner you`), "the Next step suggests the real receipt accept command with the actual id");
+  assert.match(text, new RegExp(`ai-collab receipt accept --id ${receipt.id} --owner you`), "the Next step suggests the real receipt accept command with the actual id");
   assert.match(text, /\(L2: single-tool check/i, "the per-task L2 line carries the single-tool plain-language gloss");
 
   const json = JSON.parse(runCli(["status", "--workspace", ws, "--json"]));
@@ -5192,7 +5192,7 @@ test("B5-4: bootstrap Next points at real audited commands with the actual id", 
 
   const report = runCli(["bootstrap", "--yes", "--workspace", ws]);
   assert.match(report, /^Next:/m, "bootstrap report ends with a Next: line");
-  assert.match(report, new RegExp(`node bin/ai-collab\\.js receipt accept --id ${receipt.id} --owner you`), "the bootstrap Next points at the real receipt accept command with the actual id");
+  assert.match(report, new RegExp(`ai-collab receipt accept --id ${receipt.id} --owner you`), "the bootstrap Next points at the real receipt accept command with the actual id");
   // It must NOT invent a write subcommand.
   assert.doesNotMatch(report, /--save-safe/, "bootstrap must not invent a --save-safe write path");
 
@@ -5203,7 +5203,7 @@ test("B5-4: bootstrap Next points at real audited commands with the actual id", 
   runCli(["handoff", "create", "--workspace", ws]);
   const lesson = JSON.parse(runCli(["learning", "add", "--type", "harvest", "--content", "acceptance before implementation", "--task", task.id, "--workspace", ws, "--json"])).learning;
   const report2 = runCli(["bootstrap", "--yes", "--workspace", ws]);
-  assert.match(report2, new RegExp(`node bin/ai-collab\\.js learning confirm --id ${lesson.id}`), "with a proposed lesson, the bootstrap Next points at the real learning confirm command");
+  assert.match(report2, new RegExp(`ai-collab learning confirm --id ${lesson.id}`), "with a proposed lesson, the bootstrap Next points at the real learning confirm command");
 });
 
 // B5-6: the concurrency limitation is documented honestly AND the documented backstop

@@ -259,7 +259,7 @@ function renderAdapterEntrypoint(entry, preferences = []) {
 
 This file is adapter guidance for ${entry.tool}. It is not a deep integration, background agent, telemetry hook, or hosted memory service.
 
-This file is self-contained: the full shared core contract is embedded below, so the rules are live as soon as the tool reads its always-on instructions — you do not need to open any other file first. If you also ran \`node bin/ai-collab.js init --target <dir>\` (after the package is published to npm: \`ai-collab init --target <dir>\`), the deeper layer templates and examples live in that local \`.aict/\` workspace (\`.aict/profile\`, \`.aict/context\`, \`.aict/acceptance\`, \`.aict/guard\`, \`.aict/handoff\`, \`.aict/harvest\`, and \`.aict/mechanisms\`); this contract is the same one written to \`.aict/adapters/SHARED_CORE_CONTRACT.md\`.
+This file is self-contained: the full shared core contract is embedded below, so the rules are live as soon as the tool reads its always-on instructions — you do not need to open any other file first. If you also ran \`ai-collab init --target <dir>\`, the deeper layer templates and examples live in that local \`.aict/\` workspace (\`.aict/profile\`, \`.aict/context\`, \`.aict/acceptance\`, \`.aict/guard\`, \`.aict/handoff\`, \`.aict/harvest\`, and \`.aict/mechanisms\`); this contract is the same one written to \`.aict/adapters/SHARED_CORE_CONTRACT.md\`.
 
 ${renderConfirmedPreferencesSection(preferences)}
 
