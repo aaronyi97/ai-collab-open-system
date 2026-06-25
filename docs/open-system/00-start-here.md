@@ -2,18 +2,18 @@
 
 AI Collaboration Open System is a local-first way to make AI work visible, reviewable, handoff-ready, and reusable. Start by running the CLI, not by reading the whole theory.
 
-This package is not published to npm yet, so run the CLI from a clone with `node bin/ai-collab.js`. The global `ai-collab` command only works after publish.
+Install it globally with `npm install -g ai-collab-open-system`, then use the `ai-collab` command shown below. If you cloned the source instead, replace `ai-collab` with `node bin/ai-collab.js` in every command.
 
 ## 10 minutes
 
 This is the first-run path, consistent with the README and START_HERE: two ways in, with **Path 1 (run the loop on your own real task) recommended** and the prepared demo as the optional Path 2.
 
 ```bash
-node bin/ai-collab.js init --target ./my-ai-workspace
-node bin/ai-collab.js check --workspace ./my-ai-workspace
+ai-collab init --target ./my-ai-workspace
+ai-collab check --workspace ./my-ai-workspace
 ```
 
-(The package is not on npm yet, so use the local CLI entry `node bin/ai-collab.js`; after the npm package ships, the same commands run under the global `ai-collab` name. You can also run `node bin/ai-collab.js demo` to generate a throwaway synthetic workspace and inspect it.)
+(You can also run `ai-collab demo` to generate a throwaway synthetic workspace and inspect it. From a clone, `node bin/ai-collab.js <cmd>` is the same entry.)
 
 **Path 1 (recommended) — your own task:** open `./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md` and follow its five steps on one real (lightly redacted) task: the AI returns a boundary card and an acceptance card (done defined before any work), does only the accepted slice, then a fresh chat re-checks the result against evidence and rejects a claim the evidence does not back.
 
@@ -41,7 +41,7 @@ This restates the 10-minute paths above, in steps. Path 1 is the recommended on-
 
 **Path 1 (recommended) — run the loop on your own real task:**
 
-1. Run `node bin/ai-collab.js init --target ./my-ai-workspace`.
+1. Run `ai-collab init --target ./my-ai-workspace`.
 2. Open `./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md` and follow its five steps.
 3. Describe one real (lightly redacted) task; the AI returns a boundary card and an acceptance card — done defined before any work.
 4. Let it do only the accepted slice and report what it changed, ran, and did not verify.
@@ -50,7 +50,7 @@ This restates the 10-minute paths above, in steps. Path 1 is the recommended on-
 **Path 2 (optional) — watch the prepared demo first:**
 
 1. Run the same `init` as above.
-2. Open `./my-ai-workspace/.aict/walkthroughs/10-minute.md` and follow its five steps; optionally run `node bin/ai-collab.js demo` to inspect a throwaway synthetic workspace.
+2. Open `./my-ai-workspace/.aict/walkthroughs/10-minute.md` and follow its five steps; optionally run `ai-collab demo` to inspect a throwaway synthetic workspace.
 3. It walks you through the flagship case `examples/ai-coding-long-task/CASE.md` and its artifacts.
 4. Copy the context package, acceptance card, and execution prompt into Codex, Claude Code, Cursor, Cline, Windsurf, or Copilot.
 5. Run guard review before accepting the answer and watch it catch the planted false "done" — then come back and run Path 1 on your own task.

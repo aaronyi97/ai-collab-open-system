@@ -21,7 +21,7 @@ Run the whole loop on one real task of *yours*, in three short rounds, and watch
 
 1. Initialize a throwaway workspace:
    ```bash
-   node bin/ai-collab.js init --target ./my-ai-workspace
+   ai-collab init --target ./my-ai-workspace
    ```
 2. Open `./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md` and follow its five steps.
 3. You describe one real (lightly redacted) task; the AI returns a **boundary card** and an **acceptance card** — *done* defined before any work — then does only the accepted slice and reports what it changed, ran, and did not verify.

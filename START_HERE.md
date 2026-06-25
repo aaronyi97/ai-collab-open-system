@@ -18,7 +18,7 @@ You do not need two tools to begin. With a single AI, the completion-claim check
 
 Start with the result, not the concept.
 
-The source is on GitHub (CI green), but the package is not published to npm yet. Run the CLI from a clone with `node bin/ai-collab.js`. The global `ai-collab` command shown in docs only works after the package is published.
+Install it globally with `npm install -g ai-collab-open-system`, then use the `ai-collab` command shown throughout these docs. If you cloned the source instead, replace `ai-collab` with `node bin/ai-collab.js` in every command.
 
 ## 10 minutes
 
@@ -27,7 +27,7 @@ Two ways in; pick one.
 **Path 1 (recommended) — run the loop on your own real task:**
 
 ```bash
-node bin/ai-collab.js init --target ./my-ai-workspace
+ai-collab init --target ./my-ai-workspace
 # then open in your editor — macOS: open <file> · Linux: xdg-open <file> · Windows: start <file>
 #   ./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md
 ```
@@ -37,7 +37,7 @@ Follow the five steps in `.aict/walkthroughs/10-minute-your-task.md`. You descri
 **Path 2 — watch the prepared demo first** (pick this if your task feels too sensitive to paste, or you want to see the flow first):
 
 ```bash
-node bin/ai-collab.js init --target ./my-ai-workspace
+ai-collab init --target ./my-ai-workspace
 # then open in your editor — macOS: open <file> · Linux: xdg-open <file> · Windows: start <file>
 #   ./my-ai-workspace/.aict/walkthroughs/10-minute.md
 ```
@@ -46,11 +46,11 @@ Follow the five steps in `.aict/walkthroughs/10-minute.md` (the demo preview). I
 
 Either way you should see why the system is different from a single raw AI chat: it keeps task state, acceptance, review, handoff, and reusable learning visible.
 
-Want the AI to remind you on its own — to ping you to review every time it claims "done", instead of you remembering? Install the adapter into your tool's always-on instructions with `node bin/ai-collab.js adapters install --target <repo>`. It turns on restrained coaching reminders; if you only use one tool, the completion-claim check routes through `single-tool-guard` (a fresh adversarial pass in the same tool).
+Want the AI to remind you on its own — to ping you to review every time it claims "done", instead of you remembering? Install the adapter into your tool's always-on instructions with `ai-collab adapters install --target <repo>`. It turns on restrained coaching reminders; if you only use one tool, the completion-claim check routes through `single-tool-guard` (a fresh adversarial pass in the same tool).
 
 Then open `docs/open-system/00-start-here.md` in this repository if you want the full public-system explanation.
 
-> The file paths in the next two sections live **inside the generated workspace**, not in this repo. They do not exist until you run `node bin/ai-collab.js init --target ./my-ai-workspace` (see the 10-minute path above), which writes them under `./my-ai-workspace/.aict/`. Paths below are shown relative to that `.aict/` workspace root.
+> The file paths in the next two sections live **inside the generated workspace**, not in this repo. They do not exist until you run `ai-collab init --target ./my-ai-workspace` (see the 10-minute path above), which writes them under `./my-ai-workspace/.aict/`. Paths below are shown relative to that `.aict/` workspace root.
 
 ## 30 minutes
 
@@ -86,4 +86,4 @@ Run one real task through the loop (again, all paths are inside the generated `.
 
 先拿你自己的真实任务跑一遍，不要先读一堆概念（按上面 Path 1：`init` 后打开 `.aict/walkthroughs/10-minute-your-task.md`）。任务太敏感不方便贴、或想先看一遍流程，再走 Path 2 的演示版 `.aict/walkthroughs/10-minute.md`。你要看的不是“这个系统怎么自我介绍”，而是你自己那段混乱需求如何被拆成：目标边界、完成标准、审查意见、交接状态、可复用经验。
 
-想让 AI 自己提醒你、每次说“做完了”都主动喊你复核，而不是你自己记着？用 `node bin/ai-collab.js adapters install --target <repo>` 把 adapter 装进工具的常驻指令，就会打开克制的提醒；只有一个工具时，完成自检会走 `single-tool-guard`（同一个工具里新开一轮对抗式复核）。
+想让 AI 自己提醒你、每次说“做完了”都主动喊你复核，而不是你自己记着？用 `ai-collab adapters install --target <repo>` 把 adapter 装进工具的常驻指令，就会打开克制的提醒；只有一个工具时，完成自检会走 `single-tool-guard`（同一个工具里新开一轮对抗式复核）。

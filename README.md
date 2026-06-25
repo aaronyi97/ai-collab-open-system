@@ -2,7 +2,7 @@
 
 Does your AI keep saying "done" when it is not? This is an **open-source personal AI collaboration workspace** — a thin discipline pack you drop into the AI you already use (Claude, Cursor, Codex, and others). It does not write your code and does not think for you. It does one thing: it makes your AI prove a "done" claim with evidence, gets a second AI to re-check it, and lets you switch tools or pick the work up tomorrow without re-explaining the background. Why a workspace beats a better prompt: [docs/WHY_THIS_EXISTS.md](./docs/WHY_THIS_EXISTS.md). New here? Start at [START_HERE.md](./START_HERE.md).
 
-> Runs today from a clone (`node bin/ai-collab.js`); the npm package and global `ai-collab` command are not published yet — see [Release Status](#release-status).
+> Install globally: `npm install -g ai-collab-open-system`, then use the `ai-collab` command everywhere below. If you cloned the source instead, replace `ai-collab` with `node bin/ai-collab.js` in every command.
 
 中文：你的 AI 是不是老跟你说"搞定了"，其实没做完？这是一套塞进你现有 AI（Claude、Cursor、Codex 等）的开源"协作纪律包"。它不替你写代码、不替你想，只干一件事：让 AI 说"做完了"前先拿证据自证、让另一个 AI 复核一遍、让你换工具或隔天再接着干时不用重讲背景。为什么是工作区而不是提示词，见 docs/WHY_THIS_EXISTS.md；新手从 START_HERE.md 开始。
 
@@ -37,15 +37,14 @@ That is the value: less smooth guessing, more visible state. This is a local AI 
 
 ## Run it in 2 minutes
 
-One main path. Clone, init a workspace, then open the 10-minute walkthrough — that is the whole on-ramp.
-
-> The package is not on npm yet, so the commands below use the local CLI entry `node bin/ai-collab.js`. After the npm package ships, the same commands work under the global `ai-collab` name (e.g. `ai-collab init ...`); until then, keep using `node bin/ai-collab.js`.
+One main path. Install, init a workspace, then open the 10-minute walkthrough — that is the whole on-ramp.
 
 ```bash
-git clone https://github.com/aaronyi97/ai-collab-open-system.git
-cd ai-collab-open-system
-node bin/ai-collab.js init --target ./my-ai-workspace
+npm install -g ai-collab-open-system
+ai-collab init --target ./my-ai-workspace
 ```
+
+(Prefer not to install globally? Clone the repo and run `node bin/ai-collab.js init --target ./my-ai-workspace` instead — same command, local entry.)
 
 Now open `./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md`. In 10 minutes you will feel three things on your own task: **the AI defines *done* before it touches the work**, an **independent re-check pressure-tests the "completed" claim against the evidence — passing, rejecting, or flagging insufficient evidence depending on what the evidence shows**, and **task state stops living only in the chat scroll** (it sits in plain files you can reopen, hand off, and resume).
 
@@ -78,7 +77,7 @@ For the full public-system explanation, read [docs/open-system/00-start-here.md]
 This is the same `init` as the 2-minute path, with the cross-platform openers spelled out. You only need it if you want the workspace saved locally so the same rules drive every tool and survive across sessions:
 
 ```bash
-node bin/ai-collab.js init --target ./my-ai-workspace
+ai-collab init --target ./my-ai-workspace
 # then open these two files in your editor — pick your platform's opener:
 #   macOS:   open ./my-ai-workspace/.aict/START_HERE.md
 #   Linux:   xdg-open ./my-ai-workspace/.aict/START_HERE.md
@@ -90,9 +89,9 @@ node bin/ai-collab.js init --target ./my-ai-workspace
 
 ### What the first conversation looks like
 
-Once the workspace is installed, the rules **instruct** your AI to open the first conversation proactively, rather than waiting to be asked: introduce itself, offer to take ~30 seconds to scan your recent work, and state the privacy boundary *before* scanning (the scan is run by the cloud AI you already use, so its content passes through your provider like any normal chat — this is **not** "zero data leaves your machine"; the `ai-collab` tool itself sends nothing). You stay in control: answer "yes", "just the X project", or "not now". Whether the AI actually opens this way depends on your tool loading this rule — some tools follow workspace instructions more eagerly than others. If you would rather drive it yourself, run `node bin/ai-collab.js bootstrap --yes` for the same read-only baseline at any time.
+Once the workspace is installed, the rules **instruct** your AI to open the first conversation proactively, rather than waiting to be asked: introduce itself, offer to take ~30 seconds to scan your recent work, and state the privacy boundary *before* scanning (the scan is run by the cloud AI you already use, so its content passes through your provider like any normal chat — this is **not** "zero data leaves your machine"; the `ai-collab` tool itself sends nothing). You stay in control: answer "yes", "just the X project", or "not now". Whether the AI actually opens this way depends on your tool loading this rule — some tools follow workspace instructions more eagerly than others. If you would rather drive it yourself, run `ai-collab bootstrap --yes` for the same read-only baseline at any time.
 
-中文：装好工作区后，这套规则会**指示**你的 AI 在第一次对话时主动开口（而不是等你问）：先自我介绍、提出花约 30 秒扫一眼你最近的活，并在扫描**之前**说清隐私边界——扫描是由你本来就在用的那个云端 AI 执行的，内容会像平常聊天一样经过你的服务商，所以这**不是**「零数据离开你的机器」；`ai-collab` 工具本身不向任何第三方发送东西。主动权在你：回「好」「只看 X 项目」或「先不要」。AI 是否真的这样开口，取决于你的工具有没有加载这条规则——有的工具比别的更听工作区指令。想自己来，随时跑 `node bin/ai-collab.js bootstrap --yes` 拿同样的只读基线。
+中文：装好工作区后，这套规则会**指示**你的 AI 在第一次对话时主动开口（而不是等你问）：先自我介绍、提出花约 30 秒扫一眼你最近的活，并在扫描**之前**说清隐私边界——扫描是由你本来就在用的那个云端 AI 执行的，内容会像平常聊天一样经过你的服务商，所以这**不是**「零数据离开你的机器」；`ai-collab` 工具本身不向任何第三方发送东西。主动权在你：回「好」「只看 X 项目」或「先不要」。AI 是否真的这样开口，取决于你的工具有没有加载这条规则——有的工具比别的更听工作区指令。想自己来，随时跑 `ai-collab bootstrap --yes` 拿同样的只读基线。
 
 ## 10-Minute Experience
 
@@ -102,7 +101,7 @@ Two ways in. Pick one.
 
 This is the fast way to feel why it matters: you watch the discipline work on *your* task, and an independent AI catch a thin "done" on something you actually care about.
 
-1. Run `node bin/ai-collab.js init --target ./my-ai-workspace`.
+1. Run `ai-collab init --target ./my-ai-workspace`.
 2. Open `./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md` and follow its five steps.
 3. You describe one real (lightly redacted) task and the AI returns a boundary card and an acceptance card — *done* defined before any work.
 4. You let it do only the accepted slice and report what it changed, ran, and did not verify.
@@ -118,7 +117,7 @@ Pick this if your task feels too sensitive to paste right now, or you just want 
 4. You copy the context, acceptance, and execution prompt into your AI tool.
 5. You run guard review and watch it catch a false "done" the prepared case plants — then come back and run Path 1 on your own task.
 
-中文路径：两条路任选其一。**路 1（推荐）跑你自己的真实任务**：跑 `node bin/ai-collab.js init --target ./my-ai-workspace`（发布到 npm 后才能用全局 `ai-collab`），打开 `.aict/walkthroughs/10-minute-your-task.md`，把你手头一个（脱敏的）真实乱任务丢进去，看 AI 先给边界卡和验收卡（先把“做完”定义清楚），再只做验收卡里的那一小块，最后你新开一个对话（最好换个牌子的 AI）逼它拿证据复核——它会拿证据压你的“做完了”，可能放行、可能驳回、也可能判证据不足，取决于证据本身，而不是替你假设结论。**路 2 先看演示**：怕任务敏感、或想先看流程长啥样，就先打开 `.aict/walkthroughs/10-minute.md`（演示预览版）走旗舰案例，再回来跑路 1。
+中文路径：两条路任选其一。**路 1（推荐）跑你自己的真实任务**：跑 `ai-collab init --target ./my-ai-workspace`，打开 `.aict/walkthroughs/10-minute-your-task.md`，把你手头一个（脱敏的）真实乱任务丢进去，看 AI 先给边界卡和验收卡（先把“做完”定义清楚），再只做验收卡里的那一小块，最后你新开一个对话（最好换个牌子的 AI）逼它拿证据复核——它会拿证据压你的“做完了”，可能放行、可能驳回、也可能判证据不足，取决于证据本身，而不是替你假设结论。**路 2 先看演示**：怕任务敏感、或想先看流程长啥样，就先打开 `.aict/walkthroughs/10-minute.md`（演示预览版）走旗舰案例，再回来跑路 1。
 
 ### Optional: prove it is the discipline, not the model (two-track comparison)
 
@@ -135,40 +134,40 @@ Want to try it on your own work and tell us what happened? See the [Dogfood Guid
 1. Fill a light profile for how you want AI to collaborate.
 2. Fill one context package for a real task, with private details redacted.
 3. Define acceptance before asking for output.
-4. Use your tool adapter or install guidance files with `node bin/ai-collab.js adapters install --target <repo>`.
+4. Use your tool adapter or install guidance files with `ai-collab adapters install --target <repo>`.
 5. Run a guard review on the first artifact.
 6. Write a handoff note.
 7. Extract one harvest seed for future reuse.
 
 ## Commands
 
-Before publish, run every command as `node bin/ai-collab.js <args>` from a clone. After the package is published to npm, the same commands work under the global `ai-collab` name shown here:
+With the package installed globally, run every command under the `ai-collab` name shown here (from a clone, `node bin/ai-collab.js <args>` is the same entry):
 
 ```bash
-node bin/ai-collab.js init --target ./my-ai-workspace
-node bin/ai-collab.js init --target ./my-ai-workspace --dry-run
-node bin/ai-collab.js guide
-node bin/ai-collab.js demo
-node bin/ai-collab.js check --workspace ./my-ai-workspace
-node bin/ai-collab.js adapters install --target ./my-repo
+ai-collab init --target ./my-ai-workspace
+ai-collab init --target ./my-ai-workspace --dry-run
+ai-collab guide
+ai-collab demo
+ai-collab check --workspace ./my-ai-workspace
+ai-collab adapters install --target ./my-repo
 npm run check
 ```
 
 Once a workspace exists, operate the loop on a real task with the **run layer** — these are the commands that actually produce the evidence, receipts, and guard levels this README is about (omit `--workspace` to use `./.aict` here; a state command refuses if no workspace exists rather than scattering files):
 
 ```bash
-node bin/ai-collab.js task create   --title "Fix the flaky reorder test" --workspace ./my-ai-workspace/.aict
-node bin/ai-collab.js run start      --task t1 --command "npm test"        --workspace ./my-ai-workspace/.aict
-node bin/ai-collab.js run finish     --task t1 --exit 0                    --workspace ./my-ai-workspace/.aict
-node bin/ai-collab.js evidence add   --task t1 --kind output --summary "npm test -> exit 0, suite green" --workspace ./my-ai-workspace/.aict
-node bin/ai-collab.js receipt create --task t1 --verdict pass_with_risk --review-mode self --evidence e2 --workspace ./my-ai-workspace/.aict
-node bin/ai-collab.js receipt accept --id c1 --owner you                  --workspace ./my-ai-workspace/.aict
-node bin/ai-collab.js status                                              --workspace ./my-ai-workspace/.aict
+ai-collab task create   --title "Fix the flaky reorder test" --workspace ./my-ai-workspace/.aict
+ai-collab run start      --task t1 --command "npm test"        --workspace ./my-ai-workspace/.aict
+ai-collab run finish     --task t1 --exit 0                    --workspace ./my-ai-workspace/.aict
+ai-collab evidence add   --task t1 --kind output --summary "npm test -> exit 0, suite green" --workspace ./my-ai-workspace/.aict
+ai-collab receipt create --task t1 --verdict pass_with_risk --review-mode self --evidence e2 --workspace ./my-ai-workspace/.aict
+ai-collab receipt accept --id c1 --owner you                  --workspace ./my-ai-workspace/.aict
+ai-collab status                                              --workspace ./my-ai-workspace/.aict
 ```
 
 Run that and the receipt prints `guardLevel: L2 (computed)` — exactly the single-tool ceiling described next. (Cite only a bare `--kind note` instead and it computes `L1`, which cannot pass; you need run/output evidence to reach L2.)
 
-The guard level (L0–L4) is **computed from the evidence you cite, never self-asserted**: a single tool tops out at L2 (`pass_with_risk`); a plain `pass` needs an L3+ review from a *different* model family; and L4 needs **both** that cross-family review **and** a rerun reconciled to a recorded run — a reconciled rerun on its own is just the author re-running their own command, so it stays L2. Use `run exec` to actually run a command and record its **real** exit code (`run start/finish` only record an exit you report). **Safety: `run exec` runs a real shell command locally — read the command first, especially if an AI suggested it.** A receipt records *who claimed what* — it is a local audit trail, **not** a cryptographic proof or an independent-execution guarantee (the cross-family family label is self-declared; the tool runs locally and cannot verify it). The full ladder is in `node bin/ai-collab.js --help`.
+The guard level (L0–L4) is **computed from the evidence you cite, never self-asserted**: a single tool tops out at L2 (`pass_with_risk`); a plain `pass` needs an L3+ review from a *different* model family; and L4 needs **both** that cross-family review **and** a rerun reconciled to a recorded run — a reconciled rerun on its own is just the author re-running their own command, so it stays L2. Use `run exec` to actually run a command and record its **real** exit code (`run start/finish` only record an exit you report). **Safety: `run exec` runs a real shell command locally — read the command first, especially if an AI suggested it.** A receipt records *who claimed what* — it is a local audit trail, **not** a cryptographic proof or an independent-execution guarantee (the cross-family family label is self-declared; the tool runs locally and cannot verify it). The full ladder is in `ai-collab --help`.
 
 `demo` is a no-setup preview: it writes a throwaway workspace into a new temporary directory so you can see the layout without touching your project. In a strictly read-only environment that temp write can fail; use `init --target <writable-dir>` instead. `init` writes to a directory you choose and is what you keep.
 
@@ -199,30 +198,24 @@ This is a collaboration operating system, not a prompt collection. What makes it
 
 ## Release Status
 
-This project moves through four explicit release states. Being honest about which one we are
-in is part of the product: the docs must never describe a step that has not happened yet as if
-it already has.
+This project moved through four explicit release states to get here. Being honest about which one
+we are in is part of the product: the docs describe each step as it actually happened, never ahead
+of itself.
 
 | State | Meaning | Reached? | What it means for you (plain language) |
 | --- | --- | --- | --- |
 | **local candidate** | Built and verified on a local machine; committed to git locally. | Yes | (Superseded.) The earliest state; the source is now on GitHub. |
 | **publishable candidate** | All release checks green, packed tarball install-smoke passes, version/CHANGELOG prepared. | Yes | (Superseded.) The quality bar was met before the source was pushed. |
-| **GitHub source release** | Pushed to the public GitHub repo; CI green on the pushed commit. Not git-tagged yet. | **Current** | You can `git clone` it from GitHub and run `node bin/ai-collab.js`. There is **no** `npm install` and no global `ai-collab` command yet, and no version tag. |
-| **npm package** | Published to npm via `npm publish`. | No | Only then does `npm install -g ai-collab-open-system` (the package name) install the global `ai-collab` command so it works as written elsewhere in this README. |
+| **GitHub source release** | Pushed to the public GitHub repo; CI green on the pushed commit. | Yes | (Superseded.) The source went public on GitHub with CI green before the package shipped. |
+| **npm package** | Published to npm via `npm publish`. | **Yes** | `npm install -g ai-collab-open-system` installs the global `ai-collab` command, so every command in this README works as written. |
 
-**The source is on GitHub and CI is green, but it is still not an npm package.** The code,
-privacy, and packaging checks (`npm test`, `npm run check`, `npm pack --dry-run`) all pass on the
-pushed `main`, and CI is green. What has **not** happened: a git version tag, and the actual
-`npm publish`. "Release-ready" is a quality bar, not a release event, so no doc here claims an
-`npm install` works today.
+**The package is published to npm as `ai-collab-open-system` (version 0.1.0), and the global
+`ai-collab` command is live.** The code, privacy, and packaging checks (`npm test`, `npm run check`,
+`npm pack --dry-run`) all pass, CI is green, and the package is installable from npm. If you would
+rather run from a clone than install globally, `node bin/ai-collab.js <args>` is the same entry.
 
-Everywhere this README (or `ai-collab guide`/`--help`) shows a global `ai-collab ...` command or an
-`npm install`, read it as **"available after the npm package state"**. Until then the working
-command is `node bin/ai-collab.js <args>` from a clone.
-
-The exact remaining steps that move this from the current **GitHub source release** to an **npm
-package** (tag, publish, post-publish verification) are listed in
-[RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).
+The release steps that took this from a local build to the published **npm package** (and the
+post-publish verification) are recorded in [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md).
 
 ## Release Checks
 
