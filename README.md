@@ -1,4 +1,20 @@
-# AI Collaboration Open System
+# DoneTrace
+Formerly AI Collaboration Open System
+A local-first layer for evidence, review, supervision, handoff, and learning in AI workflows.
+
+For builders whose AI keeps saying “done” before the work is actually proven.
+
+DoneTrace is a local-first evidence, review, supervision, and handoff layer for AI workflows.
+It does not replace Claude, Cursor, Codex, or your other tools.
+It makes the work checkable.
+
+## What it adds
+
+- acceptance before execution
+- evidence before “done”
+- independent re-check with another model family
+- handoff across tools and sessions
+- harvest after the task
 
 Does your AI keep saying "done" when it is not? This is an **open-source personal AI collaboration workspace** — a thin discipline pack you drop into the AI you already use (Claude, Cursor, Codex, and others). It does not write your code and does not think for you. It does one thing: it makes your AI prove a "done" claim with evidence, gets a second AI to re-check it, and lets you switch tools or pick the work up tomorrow without re-explaining the background. Why a workspace beats a better prompt: [docs/WHY_THIS_EXISTS.md](./docs/WHY_THIS_EXISTS.md). New here? Start at [START_HERE.md](./START_HERE.md).
 
@@ -37,18 +53,18 @@ That is the value: less smooth guessing, more visible state. This is a local AI 
 
 ## Run it in 2 minutes
 
-One main path. Install, init a workspace, then open the 10-minute walkthrough — that is the whole on-ramp.
+One main path: `first-run`. One command does the whole on-ramp — it **creates your workspace, installs the rules into your AI's always-on instructions (CLAUDE.md / AGENTS.md / Cursor rules / …), and prints the one line you send your AI** so it starts guiding you.
 
 ```bash
 npm install -g ai-collab-open-system
-ai-collab init --target ./my-ai-workspace
+ai-collab first-run --target . --tool claude   # or codex / cursor / copilot / cline / windsurf
 ```
 
-(Prefer not to install globally? Clone the repo and run `node bin/ai-collab.js init --target ./my-ai-workspace` instead — same command, local entry.)
+(Prefer not to install globally? Clone the repo and run `node bin/ai-collab.js first-run --target . --tool claude` instead — same command, local entry.)
 
-Now open `./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md`. In 10 minutes you will feel three things on your own task: **the AI defines *done* before it touches the work**, an **independent re-check pressure-tests the "completed" claim against the evidence — passing, rejecting, or flagging insufficient evidence depending on what the evidence shows**, and **task state stops living only in the chat scroll** (it sits in plain files you can reopen, hand off, and resume).
+That command ends by printing one line to copy into your AI; the moment your AI receives it, it introduces the system, offers a read-only scan of your recent work, and starts the guided first run. **Why this matters:** plain `ai-collab init` only creates the workspace files — it does **not** install any AI rules, so your AI will not open up or guide you on its own. `first-run` is the path that actually wires the rules into your tool. (`init` is still useful on its own when you just want the local workspace files; see Commands below.)
 
-(To open the file: macOS `open <file>` · Linux `xdg-open <file>` · Windows `start <file>`. `init` writes a local `.aict/` workspace of plain files; it does not use the network.)
+(`first-run` writes a local `.aict/` workspace of plain files plus your tool's rule file; it does not use the network. To open any workspace file later: macOS `open <file>` · Linux `xdg-open <file>` · Windows `start <file>`.)
 
 ### Or taste it with zero install (60 seconds)
 
@@ -72,9 +88,9 @@ For the full public-system explanation, read [docs/open-system/00-start-here.md]
 
 中文：一个AI也能开始：先把"做完了"变成有证据、可复核、可交接、可沉淀的结果。这就是大部分价值。有第二个模型族时，可以升级成跨族双守卫。那是一个单工具给不了自己的独立复核。守卫等级怎么算、为什么单工具自称的跨族复核会被标成"未验证"，见下面 Commands 和 --help。
 
-## First Run (keep the workspace as local files)
+## `init`: workspace files only (the manual / advanced path)
 
-This is the same `init` as the 2-minute path, with the cross-platform openers spelled out. You only need it if you want the workspace saved locally so the same rules drive every tool and survive across sessions:
+This is **not** the recommended first experience — `first-run` (above) is. Use `init` only when you want the local `.aict/` workspace files **by themselves**, with **no AI rules installed**. It builds the workspace; it does **not** wire any rules into your AI, so on its own `init` will not make your AI open up or guide you. Cross-platform openers spelled out:
 
 ```bash
 ai-collab init --target ./my-ai-workspace
@@ -85,13 +101,13 @@ ai-collab init --target ./my-ai-workspace
 # (then the same for ./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md)
 ```
 
-`init` writes a local `.aict/` workspace of plain files. Network: not used at runtime. If you ran this inside a clone of *this* repo, the generated `my-ai-workspace/` is already in our `.gitignore`, so it will not show up as untracked files or dirty your `git status`. Next, take the 10-minute first experience below: the main path runs the loop on *your own* real task; if you would rather watch the flow on a prepared example first, the demo preview (`.aict/walkthroughs/10-minute.md`) is the optional second path.
+`init` writes a local `.aict/` workspace of plain files and nothing else. Network: not used at runtime. If you ran this inside a clone of *this* repo, the generated `my-ai-workspace/` is already in our `.gitignore`, so it will not show up as untracked files or dirty your `git status`. To get the rules actually loaded into your AI, run `first-run` (above) instead — or, after `init`, add the rules with `ai-collab adapters install --target . --tool <claude|codex|cursor|...>`. Next, take the 10-minute first experience below: the main path runs the loop on *your own* real task; if you would rather watch the flow on a prepared example first, the demo preview (`.aict/walkthroughs/10-minute.md`) is the optional second path.
 
 ### What the first conversation looks like
 
-Once the workspace is installed, the rules **instruct** your AI to open the first conversation proactively, rather than waiting to be asked: introduce itself, offer to take ~30 seconds to scan your recent work, and state the privacy boundary *before* scanning (the scan is run by the cloud AI you already use, so its content passes through your provider like any normal chat — this is **not** "zero data leaves your machine"; the `ai-collab` tool itself sends nothing). You stay in control: answer "yes", "just the X project", or "not now". Whether the AI actually opens this way depends on your tool loading this rule — some tools follow workspace instructions more eagerly than others. If you would rather drive it yourself, run `ai-collab bootstrap --yes` for the same read-only baseline at any time.
+Onboarding is **trigger-driven**, not automatic: your AI does not open up on its own first reply. Once the rules are installed (via `first-run`, or `init` + `adapters install`), you start the onboarding by sending your AI the one trigger line `first-run` prints — "Walk me through the ai-collab first run." (or by just asking it to start). Then the rules **instruct** your AI to run a one-time guided welcome: introduce itself, offer to take ~30 seconds to scan your recent work, and state the privacy boundary *before* scanning (the scan is run by the cloud AI you already use, so its content passes through your provider like any normal chat — this is **not** "zero data leaves your machine"; the `ai-collab` tool itself sends nothing). You stay in control: answer "yes", "just the X project", or "not now". (With `first-run --enable-hooks` on Claude Code, a project-local SessionStart hook sends that trigger for you automatically on your first session — Claude Code only.) Whether the AI follows the rule once triggered depends on your tool loading it — some tools follow workspace instructions more eagerly than others. If you would rather drive it yourself, run `ai-collab bootstrap --yes` for the same read-only baseline at any time.
 
-中文：装好工作区后，这套规则会**指示**你的 AI 在第一次对话时主动开口（而不是等你问）：先自我介绍、提出花约 30 秒扫一眼你最近的活，并在扫描**之前**说清隐私边界——扫描是由你本来就在用的那个云端 AI 执行的，内容会像平常聊天一样经过你的服务商，所以这**不是**「零数据离开你的机器」；`ai-collab` 工具本身不向任何第三方发送东西。主动权在你：回「好」「只看 X 项目」或「先不要」。AI 是否真的这样开口，取决于你的工具有没有加载这条规则——有的工具比别的更听工作区指令。想自己来，随时跑 `ai-collab bootstrap --yes` 拿同样的只读基线。
+中文：引导是**触发式**的，不会自动发生：你的 AI 不会在自己的第一条回复里主动开口。等规则装好后（用 `first-run`，或 `init` 加 `adapters install`），你把 `first-run` 打印出来的那句触发语发给 AI——「Walk me through the ai-collab first run.」（或直接让它开始），这套规则才会**指示**你的 AI 跑一次性的引导欢迎：先自我介绍、提出花约 30 秒扫一眼你最近的活，并在扫描**之前**说清隐私边界——扫描是由你本来就在用的那个云端 AI 执行的，内容会像平常聊天一样经过你的服务商，所以这**不是**「零数据离开你的机器」；`ai-collab` 工具本身不向任何第三方发送东西。主动权在你：回「好」「只看 X 项目」或「先不要」。（在 Claude Code 上用 `first-run --enable-hooks`，一个仅限本项目的 SessionStart 钩子会在你首次会话时替你自动发出那句触发语——仅限 Claude Code。）触发之后 AI 是否照做，取决于你的工具有没有加载这条规则——有的工具比别的更听工作区指令。想自己来，随时跑 `ai-collab bootstrap --yes` 拿同样的只读基线。
 
 ## 10-Minute Experience
 
@@ -101,8 +117,8 @@ Two ways in. Pick one.
 
 This is the fast way to feel why it matters: you watch the discipline work on *your* task, and an independent AI catch a thin "done" on something you actually care about.
 
-1. Run `ai-collab init --target ./my-ai-workspace`.
-2. Open `./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md` and follow its five steps.
+1. Run `ai-collab first-run --target . --tool claude` (or codex / cursor / …) — creates the workspace, installs your AI's rules, and prints the line to send your AI. (Just want the local files with no AI rules? `ai-collab init --target ./my-ai-workspace` does only that; your AI will not open up on its own.)
+2. Send your AI the printed trigger line ("Walk me through the ai-collab first run."), then open `./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md` and follow its five steps.
 3. You describe one real (lightly redacted) task and the AI returns a boundary card and an acceptance card — *done* defined before any work.
 4. You let it do only the accepted slice and report what it changed, ran, and did not verify.
 5. You open a fresh chat (ideally a different AI brand) and have it re-check the result against evidence — watch it pressure-test the "done" claim and either pass it, reject it, or flag insufficient evidence, depending on what the evidence shows rather than the tone.
@@ -117,7 +133,7 @@ Pick this if your task feels too sensitive to paste right now, or you just want 
 4. You copy the context, acceptance, and execution prompt into your AI tool.
 5. You run guard review and watch it catch a false "done" the prepared case plants — then come back and run Path 1 on your own task.
 
-中文路径：两条路任选其一。**路 1（推荐）跑你自己的真实任务**：跑 `ai-collab init --target ./my-ai-workspace`，打开 `.aict/walkthroughs/10-minute-your-task.md`，把你手头一个（脱敏的）真实乱任务丢进去，看 AI 先给边界卡和验收卡（先把“做完”定义清楚），再只做验收卡里的那一小块，最后你新开一个对话（最好换个牌子的 AI）逼它拿证据复核——它会拿证据压你的“做完了”，可能放行、可能驳回、也可能判证据不足，取决于证据本身，而不是替你假设结论。**路 2 先看演示**：怕任务敏感、或想先看流程长啥样，就先打开 `.aict/walkthroughs/10-minute.md`（演示预览版）走旗舰案例，再回来跑路 1。
+中文路径：两条路任选其一。**路 1（推荐）跑你自己的真实任务**：跑 `ai-collab first-run --target . --tool claude`（或 codex / cursor / …）——它会建工作区、把规则装进你的 AI、并打印出一句要发给 AI 的话（只想要本地工作区文件、不装 AI 规则？用 `ai-collab init --target ./my-ai-workspace` 只建文件，你的 AI 不会自己主动开口）。把打印出来的那句触发语发给 AI 开始引导，打开 `.aict/walkthroughs/10-minute-your-task.md`，把你手头一个（脱敏的）真实乱任务丢进去，看 AI 先给边界卡和验收卡（先把“做完”定义清楚），再只做验收卡里的那一小块，最后你新开一个对话（最好换个牌子的 AI）逼它拿证据复核——它会拿证据压你的“做完了”，可能放行、可能驳回、也可能判证据不足，取决于证据本身，而不是替你假设结论。**路 2 先看演示**：怕任务敏感、或想先看流程长啥样，就先打开 `.aict/walkthroughs/10-minute.md`（演示预览版）走旗舰案例，再回来跑路 1。
 
 ### Optional: prove it is the discipline, not the model (two-track comparison)
 
@@ -144,14 +160,22 @@ Want to try it on your own work and tell us what happened? See the [Dogfood Guid
 With the package installed globally, run every command under the `ai-collab` name shown here (from a clone, `node bin/ai-collab.js <args>` is the same entry):
 
 ```bash
-ai-collab init --target ./my-ai-workspace
+ai-collab first-run --target . --tool claude   # recommended on-ramp: workspace + AI rules + the line to send your AI
+ai-collab init --target ./my-ai-workspace      # workspace files only (no AI rules — the AI will not open up on its own)
 ai-collab init --target ./my-ai-workspace --dry-run
 ai-collab guide
 ai-collab demo
 ai-collab check --workspace ./my-ai-workspace
-ai-collab adapters install --target ./my-repo
+ai-collab adapters install --target ./my-repo  # install AI rules into an existing workspace (advanced; first-run does this for you)
 npm run check
 ```
+
+**Optional Claude Code hooks (opt-in, off by default).** Add `--enable-hooks` to `first-run` / `adapters install` (Claude Code only) and the tool merges **two project-local** Claude Code hooks into the repo's own `.claude/settings.json` — never a global/home hook, and the install lists every file first and is removable:
+
+- a **Stop** hook that reminds you to capture evidence + a receipt whenever you claim a task is done, and
+- a one-time **SessionStart** hook so that, on your **first** Claude Code session in this repo, the AI starts the first-run walkthrough on its own — no need to paste the trigger line. It writes a small marker (`.claude/.ai-collab-firstrun-done`) the first time it fires and stays silent afterward.
+
+Heads-up on the trust gate: the first time you open the repo in Claude Code it asks **"trust this folder?"** — accept it, otherwise the hook cannot run and the auto-start will not happen (you can always send the printed trigger line by hand instead).
 
 Once a workspace exists, operate the loop on a real task with the **run layer** — these are the commands that actually produce the evidence, receipts, and guard levels this README is about (omit `--workspace` to use `./.aict` here; a state command refuses if no workspace exists rather than scattering files):
 
@@ -231,8 +255,22 @@ See [PRODUCT_CONTRACT.md](./PRODUCT_CONTRACT.md), [docs/PUBLIC_BOUNDARY.md](./do
 
 This is a **collaboration discipline + state layer**, not a development methodology or an agent framework. It complements, rather than replaces, tools like Spec Kit, BMAD, or an `AGENTS.md`: keep using those to plan and drive the work; this adds the evidence, guard, handoff, and harvest layer that makes a "done" claim checkable and resumable across tools and sessions.
 
+## Free Async AI Workflow Snapshot
+
+If you want me to diagnose your workflow asynchronously, I’m opening 5 free workflow snapshots.
+
 ## Contact
 
 - Security issues: see [SECURITY.md](./SECURITY.md) (private channel).
 - General: **X/Twitter** [@AaronYiaazw](https://x.com/AaronYiaazw) · **Email** yi19970319@gmail.com
 - Source & issues: https://github.com/aaronyi97/ai-collab-open-system
+
+---
+
+## Stay in touch
+
+- **X / Twitter:** [@AaronYiaazw](https://x.com/AaronYiaazw)
+- **Substack:** [@aaronyi97](https://substack.com/@aaronyi97)
+- **Free Async AI Workflow Snapshot:** Send me one workflow, one failed AI task, or one place where your AI process keeps breaking. I'll tell you where I think it breaks. No live call required.
+
+This snapshot is an AI workflow diagnostic. It is not a certified code audit, security audit, or architecture certification.

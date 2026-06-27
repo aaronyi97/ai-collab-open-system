@@ -259,12 +259,16 @@ function printQuickstart() {
 
 Installed from npm — the global ai-collab command is available everywhere. (From a source clone, the same commands run as node bin/ai-collab.js.)
 
-Start with one of these three:
-  ai-collab init --target <dir>   Create your workspace (then run one real task through the loop).
+The fastest path (one command does it all - creates your workspace, installs
+your AI's rules, and prints the line to send your AI so it starts guiding you):
+  ai-collab first-run --target . --tool claude   (or codex / cursor / copilot / cline / windsurf)
+
+Or step by step:
+  ai-collab init --target <dir>   Create your workspace ONLY (no AI rules yet - the AI will not open up until you also run first-run or adapters install).
   ai-collab guide                 Read the guided first run, step by step.
   ai-collab demo                   Watch the flow on a prepared example (writes to a temp dir).
 
-New here? Run: ai-collab guide
+New here? Run: ai-collab first-run --target . --tool <your AI tool>
 Full command list: ai-collab --help
 `);
 }
@@ -302,15 +306,16 @@ function guide(args) {
 
 Installed from npm — the global ai-collab command is available everywhere. (From a source clone, the same commands run as node bin/ai-collab.js.)
 
-1. Run: ai-collab init --target ./my-ai-workspace
-2. Open: ./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md
-3. Follow its steps on one real (lightly redacted) task of your own:
+1. Run: ai-collab first-run --target . --tool <claude|codex|cursor|...>
+   (one command: creates the workspace, installs your AI's rules, and prints the line to send your AI.
+    Just want the local workspace files with no AI rules? Use "ai-collab init --target ./my-ai-workspace" instead — but your AI will not open up on its own until the rules are installed.)
+2. Send your AI the trigger line first-run prints ("Walk me through the ai-collab first run.") to start the guided onboarding.
+3. Open: .aict/walkthroughs/10-minute-your-task.md and follow its steps on one real (lightly redacted) task of your own:
    define done -> do only that slice -> independent re-check -> handoff -> harvest.
 4. Watch an independent re-check reject a thin "done" on work you actually care about.
-5. Install the adapter guidance for your AI tool so the same rules drive every session.
 
 Prefer to watch the flow on a prepared example before using your own task?
-  Open ./my-ai-workspace/.aict/walkthroughs/10-minute.md (the demo preview) first, then come back to your task.
+  Open .aict/walkthroughs/10-minute.md (the demo preview) first, then come back to your task.
 
 Track the task lifecycle with the run-layer commands (all take --workspace <dir>):
   task create -> evidence add -> run start/finish -> task update --status <state> -> receipt create.
@@ -335,11 +340,11 @@ Network: not used.
     command: "guide",
     published: true,
     steps: [
-      "ai-collab init --target ./my-ai-workspace",
-      "open ./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md",
+      "ai-collab first-run --target . --tool <claude|codex|cursor|...>  (creates workspace + installs AI rules + prints the trigger line)",
+      "send your AI the trigger line first-run prints to start the guided onboarding",
+      "open .aict/walkthroughs/10-minute-your-task.md",
       "run the 10-minute loop on your own real (lightly redacted) task",
-      "watch an independent re-check reject a thin \"done\" on your own task",
-      "install adapter guidance so the same rules drive every session"
+      "watch an independent re-check reject a thin \"done\" on your own task"
     ],
     demoPreview: "open ./my-ai-workspace/.aict/walkthroughs/10-minute.md to watch the flow on a prepared example first",
     network: "not used"
@@ -553,10 +558,11 @@ function formatHookSection(hooks) {
   };
   const lines = hooks.plan.map((item) => `  - ${verb(item.action)}: ${item.relativePath}`);
   return [
-    "Hooks: project-local Claude Code Stop hook (local-only; no global hook):",
+    "Hooks: two project-local Claude Code hooks — a Stop hook and a one-time SessionStart hook (local-only; no global hook):",
     ...lines,
-    "  Reminds you to capture evidence + run `ai-collab receipt create` when you claim a task is done.",
-    "  Uninstall: remove the \"ai-collab-receipt-reminder\" entry from the local settings.json above."
+    "  Stop hook: reminds you to capture evidence + run `ai-collab receipt create` when you claim a task is done.",
+    "  SessionStart hook: on your FIRST Claude Code session here it asks the AI to begin the first-run onboarding on its own (then stays silent). Accept the \"trust this folder?\" prompt the first time you open the project so the hook can run.",
+    "  Uninstall: remove the \"ai-collab-receipt-reminder\" Stop entry and the \"startup\" SessionStart entry (its command contains \"[ai-collab first-run]\") from the local settings.json above."
   ].join("\n");
 }
 
@@ -568,7 +574,8 @@ Pass --tool to choose explicitly, e.g.:
   --tool cursor       install only Cursor rules
   --tool claude,codex install for several tools (comma-separated)
   --tool all          install for all supported tools (cursor, codex, claude, copilot, cline, windsurf)
-Detection looks for: .cursor/ or .cursorrules (cursor), .claude/ or CLAUDE.md (claude), AGENTS.md (codex), .github/copilot-instructions.md (copilot), .clinerules (cline), .windsurf/ (windsurf).`;
+Detection looks for: .cursor/ or .cursorrules (cursor), .claude/ or CLAUDE.md (claude), AGENTS.md (codex), .github/copilot-instructions.md (copilot), .clinerules (cline), .windsurf/ (windsurf).
+Or run the one-command on-ramp instead: ai-collab first-run --target ${targetRoot} --tool <claude|codex|cursor|...>`;
 }
 
 function adapters(args) {
@@ -646,6 +653,194 @@ Backups: ${result.backups.length}
     plan: result.plan,
     backups: result.backups,
     hooks: result.hooks
+  });
+}
+
+// `first-run` is the one-command on-ramp that actually delivers the headline
+// experience. It (1) creates the local workspace (same engine as `init`),
+// (2) installs adapter guidance into the PROJECT ROOT so the AI loads the rules
+// every session (same engine as `adapters install` — the step a plain `init`
+// never did, which is exactly why the AI never opened up), and (3) HARD-PRINTS
+// the one line the user copies into their AI to trigger the guided first run.
+// Step 3 is the whole point: the CLI cannot reach the user's chat window, but a
+// copy-paste trigger line CAN — turning "hope the AI proactively opens up"
+// (unreliable) into "user sends one line -> the AI reliably begins"
+// (deterministic). That is the difference between the old design and a path that
+// works 100% of the time.
+function firstRun(args) {
+  const dryRun = Boolean(args["dry-run"]);
+  const targetArg = typeof args.target === "string" && args.target.trim() ? args.target : ".";
+  const projectRoot = path.resolve(targetArg);
+
+  // first-run must know which AI tool to wire up — the CLI cannot see the user's
+  // chat client. Ask explicitly (with copy-paste-ready options) rather than
+  // guessing, so the user never ends up "installed, but to nothing".
+  if (!args.tool) {
+    throw new Error(
+`Which AI tool do you use? Re-run first-run with --tool:
+  ai-collab first-run --target ${targetArg} --tool claude    (Claude Code / CLAUDE.md)
+  ai-collab first-run --target ${targetArg} --tool codex     (Codex / AGENTS.md)
+  ai-collab first-run --target ${targetArg} --tool cursor    (Cursor)
+  (also: copilot / cline / windsurf, or "all" for every supported tool)`);
+  }
+
+  const workspaceName = typeof args["workspace-name"] === "string" && args["workspace-name"].trim()
+    ? args["workspace-name"].trim()
+    : "my-ai-workspace";
+  const wsTarget = path.join(projectRoot, workspaceName);
+
+  // PREFLIGHT (before writing ANYTHING) — first-run does two writes (a workspace +
+  // adapter rules), and the second one is the failure-prone half: an illegal --tool,
+  // or an existing CLAUDE.md/AGENTS.md without --force, would otherwise leave a
+  // half-installed result — a workspace was created but the AI rules (and the trigger
+  // line) never landed, which is exactly the "installed, but to nothing" trap. So we
+  // dry-run the adapter install FIRST (it writes nothing) and surface any problem now,
+  // before createWorkspace runs. If anything is wrong, we throw with "Nothing was
+  // written." and a fix, and the workspace is never created.
+  let preflight;
+  try {
+    preflight = installAdapters(projectRoot, {
+      force: Boolean(args.force),
+      dryRun: true,
+      tool: args.tool,
+      enableHooks: Boolean(args.enableHooks)
+    });
+  } catch (error) {
+    // The most common cause is an unknown --tool (parseToolSelection throws). Re-throw
+    // with the original reason plus the no-write guarantee and how to recover.
+    throw new Error(
+`${error.message}
+Nothing was written. Fix and re-run, e.g.:
+  ai-collab first-run --target ${targetArg} --tool claude   (or codex / cursor / copilot / cline / windsurf, or "all")`);
+  }
+
+  // --tool auto matched no AI tool here: stop before building the workspace and tell
+  // the user to choose a tool, instead of leaving a workspace with no rules wired up.
+  // (With preflight in front, this can never print the old self-contradiction of a
+  // workspace already created but "nothing written".)
+  if (preflight.autoFoundNothing) {
+    emit(args, autoFoundNothingMessage(preflight.targetRoot), {
+      command: "first-run",
+      written: false,
+      autoFoundNothing: true,
+      workspaceRoot: null
+    });
+    return;
+  }
+
+  // A collision: an adapter file already exists and --force was not given. In a real
+  // install installAdapters would throw at write time; the dry-run plan instead marks
+  // it "backup-replace". Catch it HERE so we refuse BEFORE creating the workspace
+  // (installAdapters' own throw happens only after createWorkspace already ran).
+  const collisions = (preflight.plan || []).filter((entry) => entry.action === "backup-replace");
+  if (collisions.length > 0 && !args.force) {
+    const collisionList = collisions.map((entry) => `  - ${entry.relativePath} (${entry.tool})`).join("\n");
+    throw new Error(
+`Adapter file already exists, so first-run stopped before writing anything:
+${collisionList}
+Nothing was written. Re-run with --force to back up and replace the existing file(s):
+  ai-collab first-run --target ${targetArg} --tool ${args.tool} --force
+Or choose a different --tool that is not already configured here.`);
+  }
+
+  const triggerEn = "Walk me through the ai-collab first run.";
+
+  // Preflight passed. In --dry-run mode, preview from the preflight plan (still no
+  // writes — including the workspace, which we dry-run only to count its files).
+  if (dryRun) {
+    const wsPreview = createWorkspace(wsTarget, { force: Boolean(args.force), dryRun: true, gitignore: true });
+    const plannedAdapterFiles = (preflight.plan || []).map((entry) => entry.path);
+    emit(args, `Dry run. Nothing written.
+
+Would create workspace: ${wsPreview.workspaceRoot}  (${wsPreview.files} files)
+Would install AI rules:  ${plannedAdapterFiles.join(", ") || "(none)"}
+Then print the copy-paste trigger line for your AI.
+`, {
+      command: "first-run",
+      dryRun: true,
+      written: false,
+      workspaceRoot: wsPreview.workspaceRoot,
+      adapterFiles: plannedAdapterFiles
+    });
+    return;
+  }
+
+  // Step 1 — create the local workspace (same engine as `init`).
+  const ws = createWorkspace(wsTarget, {
+    force: Boolean(args.force),
+    dryRun: false,
+    gitignore: true
+  });
+
+  // Step 2 — install adapter guidance into the project root (same engine as
+  // `adapters install`). This is what makes the AI actually load the rules. Preflight
+  // already proved this will succeed, so it cannot fail here and strand the workspace.
+  const ad = installAdapters(projectRoot, {
+    force: Boolean(args.force),
+    dryRun: false,
+    tool: args.tool,
+    enableHooks: Boolean(args.enableHooks)
+  });
+
+  const adapterFiles = (ad.plan || []).map((entry) => entry.path);
+
+  // Report hooks from the ACTUAL install result (ad.hooks), not just whether
+  // --enable-hooks was passed. The flag can be requested but produce no hooks —
+  // e.g. --tool cursor (hooks are Claude Code only, so ad.hooks.applicable is
+  // false), or a re-run where both hooks already exist (idempotent, nothing
+  // written). Keying off the flag alone would falsely promise "auto-start on
+  // first session" in those cases. So:
+  //   - not requested            -> tell Claude users how to opt in
+  //   - requested + written      -> really installed; auto-start works
+  //   - requested + not applicable -> say it did NOT install + the reason (Claude only)
+  //   - requested + applicable but nothing written -> already present (idempotent)
+  let hookHint;
+  if (!args.enableHooks) {
+    hookHint = "Claude Code users: add --enable-hooks for auto-start on first session (Claude Code only).";
+  } else if (ad.hooks && ad.hooks.written && ad.hooks.written.length > 0) {
+    hookHint = [
+      "Hooks enabled (two local Claude Code hooks, project-only): a one-time SessionStart onboarding hook + a Stop receipt reminder.",
+      "Claude Code will ask you to trust this folder the first time you open it here — accept it, and on your first session the AI will start the walkthrough on its own (no need to paste anything)."
+    ].join("\n");
+  } else if (ad.hooks && !ad.hooks.applicable) {
+    // Hooks were requested but cannot apply here (e.g. non-Claude tool, or settings
+    // could not be parsed). Be honest: nothing was installed, say why, say how to fix.
+    hookHint = [
+      `Note: --enable-hooks did NOT install any hooks here (${ad.hooks.reason || "hooks not applicable for this tool"}).`,
+      "Auto-start on first session is Claude Code only — re-run with --tool claude to enable it. Otherwise just send the trigger line above to start."
+    ].join("\n");
+  } else {
+    // Applicable, but nothing written: both opt-in hooks were already present.
+    hookHint = "Hooks already present (the SessionStart onboarding + Stop receipt hooks were installed before) — nothing changed; auto-start on first session is active.";
+  }
+
+  emit(args, `All set — workspace created AND your AI's rules are installed.
+
+  Workspace:  ${ws.workspaceRoot}   (${ws.files} local files you keep)
+  AI rules:   ${adapterFiles.join(", ")}   (your AI reads this every session)
+  Network:    not used.
+
+================================================================
+ ONE LAST STEP - copy the line below and send it to your AI:
+
+     ${triggerEn}
+
+================================================================
+The moment your AI receives that line, it will introduce the system,
+offer to scan your recent work (read-only, only with your OK), and
+remember how you like to work - in plain language, one step at a time.
+
+Why this one copy-paste: your AI runs in a separate chat window the
+command line cannot reach. This line is its "start" button.
+${hookHint}
+`, {
+    command: "first-run",
+    written: true,
+    workspaceRoot: ws.workspaceRoot,
+    adapterFiles,
+    triggerLine: triggerEn,
+    enableHooks: Boolean(args.enableHooks),
+    network: "not used"
   });
 }
 
@@ -2858,6 +3053,7 @@ async function main() {
     else if (command === "demo") demo(args);
     else if (command === "check") check(args);
     else if (command === "adapters") adapters(args);
+    else if (command === "first-run" || command === "firstrun") firstRun(args);
     else if (command === "task") taskCommand(args);
     else if (command === "evidence") evidenceCommand(args);
     else if (command === "run") await runCommand(args);

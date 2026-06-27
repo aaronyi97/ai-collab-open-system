@@ -208,7 +208,11 @@ export function parseToolSelection(rawValue) {
 
   const known = new Set(adapterToolKeys);
   const selected = [];
-  for (const token of tokens) {
+  for (let token of tokens) {
+    // Friendly alias: users intuitively type "claude-code" / "claudecode", but the
+    // canonical tool key is "claude". Normalize before the validity check so the
+    // natural spelling does not hit "Unknown --tool".
+    if (token === "claude-code" || token === "claudecode") token = "claude";
     if (!known.has(token)) {
       throw new Error(`Unknown --tool "${token}". Valid: ${adapterToolKeys.join(", ")}, all, auto.`);
     }
@@ -271,7 +275,7 @@ ${sixLayerProtocol.map((line) => `- ${line}`).join("\n")}
 
 - Rules (this file): the default, always-safe tier. Just guidance the tool reads; no automation.
 - Skills (optional): reusable ability cards under \`.aict/skills/\` you load into a tool on demand after running \`init\`.
-- Hooks (opt-in, off by default): \`adapters install --enable-hooks\` can add ONE project-local Claude Code Stop hook that reminds you to capture a receipt when you claim a task is done. It is never a global hook, the install lists every file first, and it is removable.
+- Hooks (opt-in, off by default): \`adapters install --enable-hooks\` can add two project-local Claude Code hooks — a Stop hook that reminds you to capture a receipt when you claim a task is done, and a one-time SessionStart hook that, on your first session here, asks the assistant to begin the first-run onboarding on its own. They are never global hooks, the install lists every file first, and they are removable.
 
 ## Minimal operating rule
 
@@ -372,6 +376,126 @@ function mergeStopHook(settings) {
   return next;
 }
 
+// --- SessionStart onboarding hook -----------------------------------------
+//
+// The SECOND opt-in hook --enable-hooks installs (alongside the Stop receipt
+// reminder above). Where the Stop hook reacts to a completion claim, this one
+// fires ONCE on the FIRST new Claude Code session after the tool was set up here
+// and proactively pushes the assistant to begin the CLAUDE.md "First-run
+// onboarding" walkthrough — so the user gets the guided welcome without having to
+// paste the trigger line by hand. After that first session it stays silent.
+//
+// Mechanics that matter (confirmed against Claude Code's official hook docs):
+//  - matcher is the event SOURCE value "startup" (NOT a custom marker): it makes
+//    the hook fire only on a brand-new session, never on resume / clear / compact.
+//    Because the matcher slot is occupied by "startup", this entry CANNOT be
+//    identified by its matcher the way the Stop hook is; instead we tag the
+//    command string with a unique literal (SESSION_START_MARK below) and find it
+//    there for idempotency.
+//  - the directive is emitted on STDOUT (not stderr): SessionStart is one of the
+//    few events whose stdout is injected into the model's context. Stop uses
+//    stderr precisely because there the goal is the opposite (surface to a human,
+//    not feed the model).
+//  - we emit PLAIN stdout text, not a JSON envelope, to avoid the double-escaping
+//    trap of JSON-inside-settings.json.
+//  - the one-time guard is a marker FILE under the project's own .claude dir. Its
+//    path is built from $CLAUDE_PROJECT_DIR (Claude Code guarantees this is the
+//    project root regardless of the hook's cwd) — never a relative path, which
+//    would resolve against an unpredictable cwd.
+//  - the directive text is English-only on purpose: the privacy scanner reads
+//    settings.json and the source, and stray Chinese there would (correctly) fail
+//    the unmarked-Chinese heuristic.
+//  - exit 0 is kept so the printed stdout is actually processed (only exit 0
+//    output is consumed); the well under the 10000-char stdout cap.
+//
+// Like the Stop hook this is still ONE project-LOCAL entry merged into the
+// target's own .claude/settings.json — never a global/home hook, never a separate
+// script file under the (privacy-forbidden) standard <claude-dir>/hooks subpath.
+
+// Unique literal embedded in the SessionStart command so the entry is findable
+// for idempotency even though its matcher slot must be the fixed "startup" source.
+const SESSION_START_MARK = "[ai-collab first-run]";
+// The one-time marker file (relative to the project root) the hook touches after
+// it first fires. Lives directly under .claude — NOT under the standard hooks
+// subdir (the <claude-dir>/hooks path literal the privacy scanner forbids).
+const SESSION_START_DONE_REL = ".ai-collab-firstrun-done";
+
+// The inlined SessionStart command. On the first session it prints the onboarding
+// directive to stdout (injected into context) and drops the marker file; on every
+// later session the marker exists so it prints nothing. Self-contained, English-
+// only, $CLAUDE_PROJECT_DIR-anchored, side-effect-limited to touching the marker.
+function sessionStartCommandString() {
+  const directive =
+    "[ai-collab first-run] First session since ai-collab was set up here. " +
+    "Proactively begin the four-step onboarding from CLAUDE.md (the \"First-run onboarding\" section) now " +
+    "— welcome, then offer to scan, then a grounded profile, then harvest — " +
+    "in plain language, one step at a time, stopping where the script says. " +
+    "Do not wait for the user to ask.";
+  return (
+    `MARK="$CLAUDE_PROJECT_DIR/.claude/${SESSION_START_DONE_REL}"; ` +
+    "if [ ! -f \"$MARK\" ]; then " +
+    `printf '%s\\n' '${directive}'; ` +
+    "mkdir -p \"$CLAUDE_PROJECT_DIR/.claude\" 2>/dev/null; " +
+    "touch \"$MARK\" 2>/dev/null || true; " +
+    "fi; exit 0"
+  );
+}
+
+function sessionStartEntry() {
+  return {
+    // MUST be the event source value "startup" — fires only on a new session, not
+    // resume/clear/compact. (Our identity tag lives in the command string, not
+    // here, because this slot is reserved for the source value.)
+    matcher: "startup",
+    hooks: [
+      {
+        type: "command",
+        command: sessionStartCommandString(),
+        timeout: 5000,
+        statusMessage: "ai-collab: first-run onboarding (one-time)"
+      }
+    ]
+  };
+}
+
+// True if a parsed settings object already carries our SessionStart hook. We key
+// off the unique marker literal inside the command (NOT the matcher, which is the
+// fixed "startup" source), so a repeat --enable-hooks does not append a duplicate.
+function hasOurSessionStartHook(settings) {
+  const sessionStart = settings?.hooks?.SessionStart;
+  if (!Array.isArray(sessionStart)) return false;
+  return sessionStart.some(
+    (entry) =>
+      entry &&
+      Array.isArray(entry.hooks) &&
+      entry.hooks.some((h) => h && typeof h.command === "string" && h.command.includes(SESSION_START_MARK))
+  );
+}
+
+// Merge our SessionStart hook into an existing settings object WITHOUT dropping
+// anything already configured: other events (including our own Stop hook), other
+// SessionStart entries, and all other keys are preserved; we only append our entry
+// to hooks.SessionStart.
+function mergeSessionStartHook(settings) {
+  const next = settings && typeof settings === "object" ? { ...settings } : {};
+  const hooks = next.hooks && typeof next.hooks === "object" ? { ...next.hooks } : {};
+  const sessionStart = Array.isArray(hooks.SessionStart) ? [...hooks.SessionStart] : [];
+  sessionStart.push(sessionStartEntry());
+  hooks.SessionStart = sessionStart;
+  next.hooks = hooks;
+  return next;
+}
+
+// Apply BOTH opt-in hooks (Stop receipt reminder + SessionStart onboarding) to a
+// settings object, each appended idempotently. Used so a single create/merge
+// writes the full opt-in hook layer in one pass without clobbering existing config.
+function mergeOurHooks(settings) {
+  let next = settings && typeof settings === "object" ? settings : {};
+  if (!hasOurStopHook(next)) next = mergeStopHook(next);
+  if (!hasOurSessionStartHook(next)) next = mergeSessionStartHook(next);
+  return next;
+}
+
 // Plan the hook-layer writes for the target. Hooks are Claude-Code-specific, so
 // they only apply when the claude entrypoint is in the selected set. Returns a
 // list of planned file actions (create / merge / backup-replace / skip) plus a
@@ -396,9 +520,13 @@ export function plannedHookActions(targetRoot, selectedKeys) {
     }
     if (parsed === undefined) {
       settingsAction = "skip-unparseable";
-    } else if (hasOurStopHook(parsed)) {
+    } else if (hasOurStopHook(parsed) && hasOurSessionStartHook(parsed)) {
+      // Both opt-in hooks already present -> nothing to add (idempotent).
       settingsAction = "already-present";
     } else {
+      // At least one of our two hooks is missing -> merge (mergeOurHooks only
+      // appends the one(s) not yet there, so an existing file with just one of
+      // them gets topped up without duplicating the other).
       settingsAction = "merge";
     }
   }
@@ -432,14 +560,17 @@ function applyHookActions(targetRoot, plan, { dryRun }) {
       }
       if (item.action === "create") {
         ensureDir(path.dirname(item.path));
-        writeFileSync(item.path, `${JSON.stringify(mergeStopHook({}), null, 2)}\n`, "utf8");
+        // Write BOTH opt-in hooks (Stop receipt reminder + SessionStart onboarding).
+        writeFileSync(item.path, `${JSON.stringify(mergeOurHooks({}), null, 2)}\n`, "utf8");
         written.push(item.relativePath);
       } else if (item.action === "merge") {
         const existing = JSON.parse(readFileSync(item.path, "utf8"));
         const backup = backupPathFor(item.path);
         renameSync(item.path, backup);
         backups.push(backup);
-        writeFileSync(item.path, `${JSON.stringify(mergeStopHook(existing), null, 2)}\n`, "utf8");
+        // mergeOurHooks appends only the hook(s) not already present, so existing
+        // config (and either of our hooks already there) is preserved, not duped.
+        writeFileSync(item.path, `${JSON.stringify(mergeOurHooks(existing), null, 2)}\n`, "utf8");
         written.push(item.relativePath);
       }
     }

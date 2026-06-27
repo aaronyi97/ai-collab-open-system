@@ -8,7 +8,7 @@ Make the assistant proactively remind the user of the matching collaboration ste
 
 ## Template
 
-### First-run promise (first reply, proactive — introduce + offer to scan + state the privacy boundary + respect yes / narrow / no):
+### First-run promise (one-time, trigger-driven — on the first-run trigger line / a start request, NOT auto on the first reply: introduce + offer to scan + state the privacy boundary + respect yes / narrow / no):
 
 
 ### Firing node (1-6) and the signal that tripped it:
@@ -35,7 +35,7 @@ Make the assistant proactively remind the user of the matching collaboration ste
 
 ## Pass bar (tick before you trust the result)
 
-- On the first reply the assistant acted proactively: it introduced itself, offered to scan recent work, stated the privacy boundary before scanning, respected the user's yes / narrow / no choice, and did not repeat the intro afterward.
+- When the user sent the first-run trigger line (or otherwise asked to start), the assistant ran the one-time onboarding: it introduced itself, offered to scan recent work, stated the privacy boundary before scanning, respected the user's yes / narrow / no choice, and did not repeat the intro afterward — and it did not fire this onboarding automatically on an unrelated first reply.
 - Each reminder fired at the right node with a concrete next step the user can act on in one move.
 - The completion-claim node named the correct guard depth for the number of model families available.
 - Restraint held: standard by default, once per moment, no reminder the user already acted on was re-raised, and a `coach:` switch was honored immediately.

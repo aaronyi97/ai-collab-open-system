@@ -10,8 +10,8 @@ A synthetic execution session reaches a 'done, implemented and tested' claim. At
 
 A solo user is working in one AI tool on a small synthetic feature. The coach runs at standard. The session passes through several collaboration moments; this shows the coach firing at the completion-claim node, once, with a concrete next step.
 
-### First-run: act proactively the first time
-"You just installed a collaboration discipline — before I say 'done' I'll show evidence, when I'm unsure I'll pull in a second AI, you won't re-explain when you switch tools, and I'll help you save what's worth keeping. Want me to take 30 seconds and look at a few of your recent tasks to show you what this changes?" Then it offers a scan, respects yes / narrow / no, and gets to work; it does not repeat this.
+### First-run: one-time onboarding, trigger-driven
+Earlier this session the user sent the trigger line first-run printed ("Walk me through the ai-collab first run."), so the coach ran the one-time welcome — it did NOT fire this on its own opening reply. "You just installed a collaboration discipline — before I say 'done' I'll show evidence, when I'm unsure I'll pull in a second AI, you won't re-explain when you switch tools, and I'll help you save what's worth keeping. Want me to take 30 seconds and look at a few of your recent tasks to show you what this changes?" Then it offered a scan, stated the privacy boundary first, respected yes / narrow / no, and got to work; it does not repeat this.
 
 ### Firing node and signal
 Node 3, completion claim. The execution assistant just returned: "Done. I implemented the new sort option and added a test; everything passes." That 'done / everything passes' phrasing is the signal.

@@ -5535,22 +5535,40 @@ test("P3: --enable-hooks only applies to the claude tool and skips others with a
   assert.equal(existsSync(path.join(target, ".claude", "settings.json")), false, "non-claude install must not write a settings.json");
 });
 
-test("P3: --enable-hooks writes ONE local Stop hook with no global hook and no hooks-dir path literal", () => {
+test("P3: --enable-hooks writes a local Stop hook + a one-time SessionStart hook, no global hook, no hooks-dir literal", () => {
   const target = mkdtempSync(path.join(tmpdir(), "aicos-hooks-on-"));
   const output = runCli(["adapters", "install", "--target", target, "--tool", "claude", "--enable-hooks"]);
-  assert.match(output, /project-local Claude Code Stop hook/i, "must announce a project-local Stop hook");
+  assert.match(output, /project-local Claude Code hooks/i, "must announce project-local Claude Code hooks");
+  assert.match(output, /Stop hook/i, "must announce the Stop hook");
+  assert.match(output, /SessionStart hook/i, "must announce the SessionStart hook");
   assert.match(output, /no global hook/i, "must promise no global hook");
   assert.match(output, /Uninstall:/i, "must tell the user how to uninstall");
 
   const settingsPath = path.join(target, ".claude", "settings.json");
   assert.ok(existsSync(settingsPath), "settings.json must be created");
   const settings = JSON.parse(read(settingsPath));
+
+  // Stop hook (receipt reminder) — unchanged behavior.
   const stop = settings.hooks.Stop;
   assert.ok(Array.isArray(stop) && stop.length === 1, "exactly one Stop entry");
-  assert.equal(stop[0].matcher, "ai-collab-receipt-reminder", "entry must carry the removable marker");
+  assert.equal(stop[0].matcher, "ai-collab-receipt-reminder", "Stop entry must carry the removable marker");
   const command = stop[0].hooks[0].command;
-  assert.match(command, /ai-collab receipt create/, "the hook must remind about receipt create");
-  assert.match(command, /exit 0/, "the hook must be non-blocking (exit 0)");
+  assert.match(command, /ai-collab receipt create/, "the Stop hook must remind about receipt create");
+  assert.match(command, /exit 0/, "the Stop hook must be non-blocking (exit 0)");
+
+  // SessionStart hook (one-time onboarding) — new behavior.
+  const sessionStart = settings.hooks.SessionStart;
+  assert.ok(Array.isArray(sessionStart) && sessionStart.length === 1, "exactly one SessionStart entry");
+  assert.equal(sessionStart[0].matcher, "startup", "SessionStart matcher must be the 'startup' source value (new sessions only, not resume/clear/compact)");
+  const ssCommand = sessionStart[0].hooks[0].command;
+  assert.match(ssCommand, /\[ai-collab first-run\]/, "SessionStart command must carry the [ai-collab first-run] identity/directive marker");
+  assert.match(ssCommand, /\$CLAUDE_PROJECT_DIR/, "SessionStart command must anchor its marker path on $CLAUDE_PROJECT_DIR, not a relative path");
+  assert.match(ssCommand, /\.ai-collab-firstrun-done/, "SessionStart command must use the one-time marker file");
+  assert.match(ssCommand, /printf /, "SessionStart command must emit the directive on stdout via printf (stdout is injected into context)");
+  assert.doesNotMatch(ssCommand, /1>&2|2>&1.*printf/, "SessionStart directive must go to stdout, not stderr");
+  assert.match(ssCommand, /exit 0/, "the SessionStart hook must exit 0 so its stdout is processed");
+  // Directive must be English-only (no stray Chinese) so the privacy scan passes.
+  assert.doesNotMatch(ssCommand, /[一-鿿]/, "SessionStart directive must contain no Chinese (privacy scan reads settings.json)");
 
   // Privacy contract: the generated settings must NOT contain the standard
   // hooks-dir path literal the project's privacy scanner forbids in user files.
@@ -5577,13 +5595,43 @@ test("P3: --enable-hooks merges into an existing settings.json without clobberin
   const markers = merged.hooks.Stop.map((entry) => entry.matcher);
   assert.ok(markers.includes("user-existing"), "user's existing Stop hook must survive the merge");
   assert.ok(markers.includes("ai-collab-receipt-reminder"), "our marked Stop hook must be appended");
+  // Our SessionStart hook must also be appended alongside (the seed had none).
+  const ssMarkers = (merged.hooks.SessionStart || []).map((entry) => entry.matcher);
+  assert.ok(ssMarkers.includes("startup"), "our SessionStart hook must be appended on merge");
+  const ssOurs = (merged.hooks.SessionStart || []).filter((e) => (e.hooks || []).some((h) => (h.command || "").includes("[ai-collab first-run]")));
+  assert.equal(ssOurs.length, 1, "exactly one of our SessionStart entries after a fresh merge");
 
-  // Idempotent: a second --enable-hooks run does not duplicate our entry.
+  // Idempotent: a second --enable-hooks run does not duplicate EITHER entry.
   const second = runCli(["adapters", "install", "--target", target, "--tool", "claude", "--enable-hooks", "--force"]);
-  assert.match(second, /already present/i, "a repeat run must report the hook is already present");
+  assert.match(second, /already present/i, "a repeat run must report the hooks are already present");
   const after = JSON.parse(read(settingsPath));
   const ours = after.hooks.Stop.filter((entry) => entry.matcher === "ai-collab-receipt-reminder");
-  assert.equal(ours.length, 1, "the marked entry must appear exactly once after a repeat run");
+  assert.equal(ours.length, 1, "the marked Stop entry must appear exactly once after a repeat run");
+  const ssAfter = (after.hooks.SessionStart || []).filter((e) => (e.hooks || []).some((h) => (h.command || "").includes("[ai-collab first-run]")));
+  assert.equal(ssAfter.length, 1, "our SessionStart entry must appear exactly once after a repeat run");
+  assert.ok((after.hooks.SessionStart || []).map((e) => e.matcher).includes("startup"), "SessionStart matcher stays 'startup' after repeat run");
+});
+
+test("P3: --enable-hooks tops up a SessionStart hook when only our Stop hook is already present (and does not duplicate Stop)", () => {
+  // Mirrors a user who installed an EARLIER version that only wrote the Stop hook:
+  // a fresh --enable-hooks must add the SessionStart hook without re-adding Stop.
+  const target = mkdtempSync(path.join(tmpdir(), "aicos-hooks-topup-"));
+  mkdirSync(path.join(target, ".claude"), { recursive: true });
+  const settingsPath = path.join(target, ".claude", "settings.json");
+  const seed = {
+    hooks: {
+      Stop: [{ matcher: "ai-collab-receipt-reminder", hooks: [{ type: "command", command: "printf x 1>&2; exit 0" }] }]
+    }
+  };
+  writeFileSync(settingsPath, `${JSON.stringify(seed, null, 2)}\n`, "utf8");
+
+  const out = runCli(["adapters", "install", "--target", target, "--tool", "claude", "--enable-hooks", "--force"]);
+  assert.match(out, /merge into/i, "a settings.json missing one of our hooks must merge (not report already-present)");
+  const after = JSON.parse(read(settingsPath));
+  const stopOurs = after.hooks.Stop.filter((e) => e.matcher === "ai-collab-receipt-reminder");
+  assert.equal(stopOurs.length, 1, "the existing Stop hook must NOT be duplicated");
+  const ssOurs = (after.hooks.SessionStart || []).filter((e) => (e.hooks || []).some((h) => (h.command || "").includes("[ai-collab first-run]")));
+  assert.equal(ssOurs.length, 1, "the missing SessionStart hook must be added exactly once");
 });
 
 test("P3: help frames the three adaptation tiers (rules default / skills optional / hooks opt-in)", () => {
@@ -6862,7 +6910,7 @@ test("bootstrap: help documents the command and init points first-time users to 
   // The command is documented (term-light first screen; details carry the terms).
   const help = runCli(["help"]);
   assert.match(help, /ai-collab bootstrap \[--workspace <dir>\] \[--report-only\] \[--json\] \[--yes\]/, "help lists the bootstrap usage line");
-  assert.match(help, /bootstrap: the scan engine your AI uses to onboard you/i, "help explains bootstrap");
+  assert.match(help, /bootstrap: the read-only scan engine the first-run walkthrough uses/i, "help explains bootstrap");
   assert.match(help, /WRITES NOTHING|report-only/i, "help states bootstrap writes nothing");
 
   // init's success output points a brand-new user at bootstrap.
@@ -7128,7 +7176,7 @@ test("i18n: `--help --lang zh` and `--help levels --lang zh` print Chinese, keep
   const help = runLang("zh", ["--help"]);
   assert.equal(help.status, 0);
   assert.match(help.stdout, /AI 协作开放系统/, "the help banner is Chinese");
-  assert.match(help.stdout, /新来的？这三个命令/, "the term-light header is Chinese");
+  assert.match(help.stdout, /新来的？这些命令/, "the term-light header is Chinese (now leads with first-run + init/bootstrap/status)");
   // The bootstrap blurb keeps the honesty caveat: never shown as done, writes nothing.
   assert.match(help.stdout, /绝不被显示为已完成/, "help keeps 'never shown as done' faithful");
   assert.match(help.stdout, /它什么都不写（只读报告）/, "help keeps 'writes nothing' faithful");

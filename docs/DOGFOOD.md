@@ -19,8 +19,10 @@ If none of those bite you, this probably is not for you, and that is a fine outc
 
 Run the whole loop on one real task of *yours*, in three short rounds, and watch an independent AI catch a thin "done" on work you actually care about. This is the fastest way to feel why it matters.
 
-1. Initialize a throwaway workspace:
+1. Initialize a throwaway workspace. For the full experience (so your AI actually loads the rules and can open the guided onboarding), use `first-run`; if you only want the local files to follow the walkthrough by hand, `init` creates the workspace alone (no AI rules — your AI will not open up on its own):
    ```bash
+   ai-collab first-run --target . --tool claude   # recommended: workspace + AI rules + the line to send your AI
+   # or, workspace files only:
    ai-collab init --target ./my-ai-workspace
    ```
 2. Open `./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md` and follow its five steps.

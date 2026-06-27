@@ -27,7 +27,9 @@ Two ways in; pick one.
 **Path 1 (recommended) — run the loop on your own real task:**
 
 ```bash
-ai-collab init --target ./my-ai-workspace
+ai-collab first-run --target . --tool claude   # or codex / cursor / copilot / cline / windsurf
+# first-run creates the workspace, installs the rules into your AI, and prints one line to send your AI.
+# (Just want the local workspace files, with NO AI rules installed? `ai-collab init --target ./my-ai-workspace` does only that — your AI will not open up on its own.)
 # then open in your editor — macOS: open <file> · Linux: xdg-open <file> · Windows: start <file>
 #   ./my-ai-workspace/.aict/walkthroughs/10-minute-your-task.md
 ```
@@ -50,7 +52,7 @@ Want the AI to remind you on its own — to ping you to review every time it cla
 
 Then open `docs/open-system/00-start-here.md` in this repository if you want the full public-system explanation.
 
-> The file paths in the next two sections live **inside the generated workspace**, not in this repo. They do not exist until you run `ai-collab init --target ./my-ai-workspace` (see the 10-minute path above), which writes them under `./my-ai-workspace/.aict/`. Paths below are shown relative to that `.aict/` workspace root.
+> The file paths in the next two sections live **inside the generated workspace**, not in this repo. They do not exist until you create the workspace (run `ai-collab first-run --target . --tool <your AI tool>`, or — for files only — `ai-collab init --target ./my-ai-workspace`; see the 10-minute path above), which writes them under the workspace's `.aict/`. Paths below are shown relative to that `.aict/` workspace root.
 
 ## 30 minutes
 
