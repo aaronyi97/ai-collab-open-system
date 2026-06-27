@@ -159,6 +159,7 @@ function isPolicyFile(file, root) {
   const relative = path.relative(root, file).split(path.sep).join("/");
   const name = path.basename(file).toLowerCase();
   if (relative === "scripts/privacy-scan.js") return true;
+  if (relative === "privacy-scan.local.json") return true;
   // pack-check.js is a release-safety enforcement script: it legitimately
   // enumerates the forbidden-to-ship patterns (.env, governance dirs, key
   // material), so it is treated as a policy file like the scanner itself.

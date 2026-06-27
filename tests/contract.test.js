@@ -1344,21 +1344,26 @@ test("maintainer-private dir names are NOT hard-coded; they are user-configurabl
   const govName = `${"~/.ai"}-gov`;
   const knowledgeName = `${"Knowledge"}OS`;
   const fixture = mkdtempSync(path.join(tmpdir(), "aicos-privacy-nohardcode-"));
+  const localPath = path.join(repoRoot, "privacy-scan.local.json");
+  const existingLocalOverride = existsSync(localPath) ? readFileSync(localPath, "utf8") : null;
   writeFileSync(
     path.join(fixture, "doc.md"),
     ["# Doc", `Mentions ${govName} and ${knowledgeName} in prose.`].join("\n"),
     "utf8"
   );
-  const base = runResult(["scripts/privacy-scan.js", "--workspace", fixture]);
-  assert.equal(base.status, 0, `private dir names must not be hard-coded into the scanner: ${base.stderr}`);
 
-  // ...and a user who DOES want those names blocked adds them to the gitignored
-  // privacy-scan.local.json override, after which the same content FAILS. The
-  // scanner loads the override from the repo root, so write a temp one there and
-  // always clean it up.
-  const localPath = path.join(repoRoot, "privacy-scan.local.json");
-  assert.equal(existsSync(localPath), false, "test precondition: no real local override present");
   try {
+    // Isolate this check from a real maintainer override that may exist during a
+    // release run. The default scanner behavior is the public package behavior.
+    rmSync(localPath, { force: true });
+
+    const base = runResult(["scripts/privacy-scan.js", "--workspace", fixture]);
+    assert.equal(base.status, 0, `private dir names must not be hard-coded into the scanner: ${base.stderr}`);
+
+    // ...and a user who DOES want those names blocked adds them to the gitignored
+    // privacy-scan.local.json override, after which the same content FAILS. The
+    // scanner loads the override from the repo root, so write a temp one there and
+    // always restore any real local override afterward.
     writeFileSync(
       localPath,
       JSON.stringify({ paths: [govName, knowledgeName] }),
@@ -1367,10 +1372,24 @@ test("maintainer-private dir names are NOT hard-coded; they are user-configurabl
     const withOverride = runResult(["scripts/privacy-scan.js", "--workspace", fixture]);
     assert.notEqual(withOverride.status, 0, "configured local private names must be blocked");
     assert.match(withOverride.stderr, /denylisted path/i, "override path should be reported as denylisted");
+
+    const repoWithOverride = runResult(["scripts/privacy-scan.js", "--no-extras"]);
+    assert.equal(
+      repoWithOverride.status,
+      0,
+      `the local override is scanner policy input, not scanned content: ${repoWithOverride.stderr}`
+    );
   } finally {
-    rmSync(localPath, { force: true });
+    if (existingLocalOverride === null) {
+      rmSync(localPath, { force: true });
+    } else {
+      writeFileSync(localPath, existingLocalOverride, "utf8");
+    }
   }
-  assert.equal(existsSync(localPath), false, "temp local override must be cleaned up");
+  assert.equal(existsSync(localPath), existingLocalOverride !== null, "local override presence must be restored");
+  if (existingLocalOverride !== null) {
+    assert.equal(readFileSync(localPath, "utf8"), existingLocalOverride, "real local override content must be restored");
+  }
 });
 
 function tokensForSimilarity(content) {

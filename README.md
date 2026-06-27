@@ -232,7 +232,7 @@ of itself.
 | **GitHub source release** | Pushed to the public GitHub repo; CI green on the pushed commit. | Yes | (Superseded.) The source went public on GitHub with CI green before the package shipped. |
 | **npm package** | Published to npm via `npm publish`. | **Yes** | `npm install -g ai-collab-open-system` installs the global `ai-collab` command, so every command in this README works as written. |
 
-**The package is published to npm as `ai-collab-open-system` (version 0.1.0), and the global
+**The package is published to npm as `ai-collab-open-system` (version 0.1.1), and the global
 `ai-collab` command is live.** The code, privacy, and packaging checks (`npm test`, `npm run check`,
 `npm pack --dry-run`) all pass, CI is green, and the package is installable from npm. If you would
 rather run from a clone than install globally, `node bin/ai-collab.js <args>` is the same entry.

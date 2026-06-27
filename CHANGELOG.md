@@ -3,6 +3,18 @@
 This project is **published to npm** as `ai-collab-open-system`, and the global `ai-collab` command
 is live. See [Release Status](./README.md#release-status) for the four-state ladder it moved through.
 
+## 0.1.1 — 2026-06-27
+
+Status: patch release for the published npm package line; `ai-collab-open-system` remains the npm
+package name and `ai-collab` remains the global command, while DoneTrace is the formal product name.
+
+- Formalized **DoneTrace** as the product name across the README, package metadata, CLI first-run
+  copy, generated workspace comments, and open-system start docs.
+- Preserved compatibility for existing npm users by keeping the package name `ai-collab-open-system`
+  and the executable command `ai-collab`.
+- Kept private owner decision records outside the public package, so old naming notes remain
+  historical context rather than current execution guidance.
+
 ## 0.1.0 — 2026-06-25 (published to npm)
 
 Status: published to npm as `ai-collab-open-system@0.1.0`; the global `ai-collab` command installs via

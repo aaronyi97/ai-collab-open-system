@@ -302,8 +302,8 @@ export function workspaceManifest() {
     "privacy"
   ];
   return {
-    name: "AI Collaboration Open System Workspace",
-    version: "0.1.0",
+    name: "DoneTrace Workspace",
+    version: "0.1.1",
     localFirst: true,
     defaultNetworkUse: "none",
     workspaceDirs,
