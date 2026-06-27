@@ -1,5 +1,4 @@
 # DoneTrace
-Formerly AI Collaboration Open System
 A local-first layer for evidence, review, supervision, handoff, and learning in AI workflows.
 
 For builders whose AI keeps saying “done” before the work is actually proven.

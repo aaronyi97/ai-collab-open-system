@@ -255,7 +255,7 @@ function emit(args, text, payload) {
 // path. The full command list and the L0-L4 levels live in `--help` (printHelp),
 // which a user reaches only by explicitly asking for everything.
 function printQuickstart() {
-  console.log(`AI Collaboration Open System — make AI productive on real work through a profile -> context -> acceptance -> guard -> handoff -> harvest loop (local-first; no network).
+  console.log(`DoneTrace (formerly AI Collaboration Open System) — make AI productive on real work through a profile -> context -> acceptance -> guard -> handoff -> harvest loop (local-first; no network).
 
 Installed from npm — the global ai-collab command is available everywhere. (From a source clone, the same commands run as node bin/ai-collab.js.)
 
@@ -3089,4 +3089,3 @@ async function main() {
 }
 
 main();
-

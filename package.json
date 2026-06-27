@@ -1,7 +1,7 @@
 {
   "name": "ai-collab-open-system",
   "version": "0.1.0",
-  "description": "Local-first open-source AI collaboration workspace with profile, context, acceptance, guard, handoff, and harvest structure.",
+  "description": "DoneTrace is a local-first open-source AI collaboration workspace with profile, context, acceptance, guard, handoff, and harvest structure.",
   "type": "module",
   "bin": {
     "ai-collab": "bin/ai-collab.js"

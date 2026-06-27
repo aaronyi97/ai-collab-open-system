@@ -1,6 +1,6 @@
-# 00 Start Here - AI Collaboration Open System
+# 00 Start Here - DoneTrace (formerly AI Collaboration Open System)
 
-AI Collaboration Open System is a local-first way to make AI work visible, reviewable, handoff-ready, and reusable. Start by running the CLI, not by reading the whole theory.
+DoneTrace is a local-first way to make AI work visible, reviewable, handoff-ready, and reusable. Start by running the CLI, not by reading the whole theory.
 
 Install it globally with `npm install -g ai-collab-open-system`, then use the `ai-collab` command shown below. If you cloned the source instead, replace `ai-collab` with `node bin/ai-collab.js` in every command.
 
