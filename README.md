@@ -257,8 +257,8 @@ This is a **collaboration discipline + state layer**, not a development methodol
 
 ## Free Async AI Workflow Snapshot
 
-If you want me to diagnose your workflow asynchronously, I’m opening 5 free workflow snapshots.
-Start here: [Request a workflow teardown](https://github.com/aaronyi97/donetrace/issues/1).
+If you want me to diagnose your workflow asynchronously, use the intake form below. It collects the workflow, failure point, optional files/screenshots, and your preferred contact method.
+Start here: [Request a free workflow snapshot](https://ai-workflow-intake-deploy.vercel.app/en/?src=github).
 
 ## Contact
 
@@ -272,6 +272,6 @@ Start here: [Request a workflow teardown](https://github.com/aaronyi97/donetrace
 
 - **X / Twitter:** [@AaronYiaazw](https://x.com/AaronYiaazw)
 - **Substack:** [@aaronyi97](https://substack.com/@aaronyi97)
-- **Free Async AI Workflow Snapshot:** [Request a workflow teardown](https://github.com/aaronyi97/donetrace/issues/1). Send me one workflow, one failed AI task, or one place where your AI process keeps breaking. I'll tell you where I think it breaks. No live call required.
+- **Free Async AI Workflow Snapshot:** [Request a free workflow snapshot](https://ai-workflow-intake-deploy.vercel.app/en/?src=github). Send me one workflow, one failed AI task, or one place where your AI process keeps breaking. I'll tell you where I think it breaks. No live call required.
 
 This snapshot is an AI workflow diagnostic. It is not a certified code audit, security audit, or architecture certification.
